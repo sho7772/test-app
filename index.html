@@ -107,7 +107,8 @@
 
     <div id="confirmModal">
         <div class="confirm-card">
-            <div class="confirm-title" id="confirmTitle"></div> <div class="confirm-msg" id="confirmMsg">変更を保存しますか？</div>
+            <div class="confirm-title" id="confirmTitle"></div>
+            <div class="confirm-msg" id="confirmMsg">変更を保存しますか？</div>
             <div class="confirm-actions">
                 <button class="btn-cancel" onclick="closeConfirm()">キャンセル</button>
                 <button class="btn-ok" id="confirmOkBtn">OK</button>
@@ -298,10 +299,8 @@
             b.style.top = "20px"; setTimeout(() => { b.style.top = "-100px"; }, 3000);
         };
         
-        // 修正: タイトル引数を削除し、メッセージのみ受け取る
         window.showConfirmDialog = (msg, onOk) => {
             const m = document.getElementById('confirmModal');
-            // document.getElementById('confirmTitle').innerText = title; // 削除
             document.getElementById('confirmMsg').innerText = msg;
             const ok = document.getElementById('confirmOkBtn');
             const newOk = ok.cloneNode(true); ok.parentNode.replaceChild(newOk, ok);
@@ -373,22 +372,30 @@
             checkProfileChanges();
         };
 
+        // --- ★上書きアップロード対応版 ---
         async function uploadToCloudinary(file) {
+            const user = auth.currentUser;
+            if (!user) throw new Error("ログインしていません");
+
             const formData = new FormData();
             formData.append('file', file);
             formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET); 
+            // ファイル名を「profile_ユーザーID」に固定（これで上書きされる）
+            formData.append('public_id', `profile_${user.uid}`);
 
             const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
                 method: 'POST',
                 body: formData
             });
+
             if (!response.ok) {
                 const err = await response.json();
                 console.error("Cloudinary Error:", err);
                 throw new Error("アップロード失敗: 設定を確認してください");
             }
             const data = await response.json();
-            return data.secure_url;
+            // キャッシュ対策で時間を付与
+            return `${data.secure_url}?v=${new Date().getTime()}`;
         }
 
         function renderProfileAvatar() {
@@ -436,10 +443,9 @@
         }
 
         window.savePublicProfile = async () => {
-            // 修正: タイトル引数を削除
             window.showConfirmDialog("変更を保存しますか？", async () => {
                 const newName = document.getElementById('publicName').value;
-                window.showNotify("保存中...", "success"); // 簡易的なローディング表示
+                window.showNotify("保存中...", "success");
                 
                 try {
                     let finalUrl = currentUserData.photoURL || null;
@@ -506,7 +512,6 @@
             const pc = document.getElementById('editPassConfirm').value;
             if(p && (p.length<6 || p!==pc)) return window.showNotify("パスワードを確認してください", "error");
             
-            // 修正: タイトル引数を削除
             window.showConfirmDialog("変更を保存しますか？", async () => {
                 try {
                     const u = auth.currentUser;
@@ -531,7 +536,6 @@
         };
         window.closeAuthModal = () => document.getElementById('authModal').style.display = 'none';
         window.toggleMode = () => window.openAuthModal(currentAuthMode==='login'?'register':'login');
-        // 修正: タイトル引数を削除
         window.confirmLogout = () => window.showConfirmDialog("ログアウトしますか？", window.logoutExecution);
         window.logoutExecution = () => signOut(auth).then(()=>{ window.showNotify("ログアウトしました"); setTimeout(()=>location.reload(),1000); });
         
