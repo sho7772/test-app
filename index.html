@@ -52,8 +52,8 @@
         /* バリデーション用スタイル */
         .input-wrapper-relative { position: relative; }
         .validation-icon { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); font-size: 16px; display: none; }
-        .validation-icon.valid { display: block; color: #3498db; } /* 青系 */
-        .validation-icon.invalid { display: block; color: #e74c3c; } /* 赤系 */
+        .validation-icon.valid { display: block; color: #3498db; }
+        .validation-icon.invalid { display: block; color: #e74c3c; }
         
         .helper-text { font-size: 11px; color: #888; margin-top: 5px; display: flex; align-items: center; gap: 5px; }
         .helper-text.valid { color: #3498db; }
@@ -67,10 +67,21 @@
         .prefix-input-container:focus-within { border-color: #3498db; background: white; }
         .prefix-span { padding: 0 0 0 15px; color: #999; font-size: 16px; }
 
-        /* 確認ボタン */
-        .check-id-btn { background: #eee; border: none; color: #555; padding: 8px 12px; font-size: 12px; font-weight: bold; border-radius: 8px; margin-right: 10px; cursor: pointer; transition: 0.2s; white-space: nowrap; }
-        .check-id-btn:hover { background: #ddd; }
-        .check-id-btn:active { transform: scale(0.95); }
+        /* 確認ボタン (ID用) */
+        .check-id-btn { 
+            border: none; padding: 8px 12px; border-radius: 8px; 
+            font-size: 12px; font-weight: bold; margin-right: 8px; 
+            cursor: pointer; transition: all 0.3s; white-space: nowrap; outline: none;
+        }
+        /* 初期・無効状態 (グレー) */
+        .check-id-btn.disabled { background: #eee; color: #aaa; cursor: not-allowed; }
+        /* 有効状態 (ブルー) */
+        .check-id-btn.active { background: #3498db; color: white; cursor: pointer; }
+        .check-id-btn.active:hover { opacity: 0.9; }
+        /* 使用済み (レッド) */
+        .check-id-btn.error { background: #e74c3c; color: white; cursor: default; }
+        /* OK (チェックマーク・透過) */
+        .check-id-btn.success { background: transparent; color: #3498db; font-size: 18px; padding: 0 10px; cursor: default; }
 
         /* プロフィールアイコン編集エリア */
         .profile-icon-area { display: flex; flex-direction: column; align-items: center; margin-bottom: 30px; }
@@ -330,14 +341,12 @@
                 <div class="prefix-input-container">
                     <span class="prefix-span">@</span>
                     <input type="text" id="inputId" placeholder="user_id" style="border:none; padding-left:5px; background: transparent; width: 100%;">
-                    <button class="check-id-btn" id="checkIdBtn" onclick="verifyIdManually()">確認</button>
-                    <i class="validation-icon fas fa-check-circle" id="icon-id" style="position:static; margin-right:15px;"></i>
+                    <button class="check-id-btn disabled" id="checkIdBtn" onclick="verifyIdManually()">確認</button>
                 </div>
                 <div style="font-size:10px; color:#999; margin-top:3px; display:flex; justify-content:space-between;">
                     <span>※IDは公開されます</span>
-                    <span style="font-size:10px;">※半角英数字のみ</span>
                 </div>
-                <div id="idError" class="inline-error">既に登録されています <i class="fas fa-exclamation-circle"></i></div>
+                <div style="font-size:10px; color:#999; margin-top:2px;">※半角英数字のみ</div>
             </div>
 
             <div class="input-group" id="publicNameGroup" style="display:none;">
@@ -428,7 +437,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateEmail, updatePassword, updateProfile, deleteUser, reauthenticateWithCredential, EmailAuthProvider } 
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateEmail, updatePassword, updateProfile, deleteUser, reauthenticateWithCredential, EmailAuthProvider, fetchSignInMethodsForEmail } 
             from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc, collection, addDoc, query, where, getDocs, orderBy, limit, onSnapshot, serverTimestamp, writeBatch, arrayUnion, arrayRemove, increment } 
             from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -1021,6 +1030,8 @@
             document.getElementById('switchText').innerHTML = isReg ? "ログインへ戻る" : "<b>登録はこちら</b>";
             
             resetValidationDisplay();
+            // 初期状態のIDボタンチェック
+            if(isReg) validateField('id');
         };
         window.closeAuthModal = () => document.getElementById('authModal').style.display = 'none';
         window.toggleMode = () => window.openAuthModal(currentAuthMode==='login'?'register':'login');
@@ -1046,7 +1057,11 @@
             });
             document.getElementById('passHelper').classList.remove('valid');
             document.getElementById('emailError').style.display = 'none';
-            document.getElementById('idError').style.display = 'none';
+            
+            // IDボタンのリセット
+            const idBtn = document.getElementById('checkIdBtn');
+            idBtn.className = "check-id-btn disabled";
+            idBtn.innerHTML = "確認";
         }
 
         // リアルタイムチェック
@@ -1057,11 +1072,23 @@
             let isValid = false;
 
             if (type === 'id') {
-                isValid = /^[a-zA-Z0-9]+$/.test(val);
-                // リセット：入力中はエラーを消すが、既にチェック済みでエラーだった場合は一旦消すかどうか...
-                // ここでは入力が変わったらエラーを消す
-                document.getElementById('idError').style.display = 'none';
-            } else if (type === 'publicName') { 
+                const idBtn = document.getElementById('checkIdBtn');
+                if (/^[a-zA-Z0-9]+$/.test(val)) {
+                    // 条件クリア：ボタンがRedやSuccessなら入力変更でBlueに戻す
+                    if(idBtn.classList.contains('error') || idBtn.classList.contains('success')) {
+                         idBtn.className = "check-id-btn active";
+                         idBtn.innerHTML = "確認";
+                    } else if (idBtn.classList.contains('disabled')) {
+                         idBtn.className = "check-id-btn active";
+                    }
+                } else {
+                    // 条件不備：グレーアウト
+                    idBtn.className = "check-id-btn disabled";
+                    idBtn.innerHTML = "確認";
+                }
+                return; // IDはボタンで管理するのでアイコン処理はスキップ
+            } 
+            else if (type === 'publicName') { 
                 isValid = val.trim().length > 0;
             } else if (type === 'email') {
                 isValid = /\S+@\S+\.\S+/.test(val);
@@ -1096,42 +1123,28 @@
             return snap.empty; // true = 使用可能
         }
 
-        // ▼ 追加: 手動確認ボタン用関数
+        // 手動確認ボタン用関数
         window.verifyIdManually = async () => {
             const id = document.getElementById('inputId').value;
             const btn = document.getElementById('checkIdBtn');
             
-            if(!id) return;
-            if(!/^[a-zA-Z0-9]+$/.test(id)) {
-                setValidationStatus('id', false);
-                return;
-            }
+            // disabledや既にsuccessの場合は何もしない
+            if(btn.classList.contains('disabled') || btn.classList.contains('success')) return;
 
-            btn.disabled = true; btn.innerText = "確認中...";
+            btn.innerText = "確認中...";
             
             try {
                 const isAvailable = await checkIdAvailability(id);
                 if(isAvailable) {
-                    setValidationStatus('id', true);
-                    document.getElementById('idError').style.display = 'none';
-                    btn.innerText = "OK";
-                    btn.style.color = "#2ecc71"; // Green
+                    btn.className = "check-id-btn success";
+                    btn.innerHTML = '<i class="fas fa-check"></i>';
                 } else {
-                    setValidationStatus('id', false);
-                    document.getElementById('idError').style.display = 'block';
-                    btn.innerText = "使用済";
-                    btn.style.color = "#e74c3c"; // Red
+                    btn.className = "check-id-btn error";
+                    btn.innerHTML = "使用されています";
                 }
             } catch(e) {
                 console.error(e);
-            } finally {
-                btn.disabled = false;
-                setTimeout(() => { 
-                    if(btn.innerText === "OK" || btn.innerText === "使用済") {
-                        // 少し経ったら文字を「確認」に戻すが、色はそのままなどが親切かも
-                        btn.innerText = "確認"; btn.style.color = "#555";
-                    }
-                }, 3000);
+                btn.innerText = "確認"; // エラー時は戻す
             }
         };
 
@@ -1146,46 +1159,62 @@
             
             // バリデーション実行
             if(currentAuthMode==='register') {
-                validateField('id');
                 validateField('publicName');
                 validateField('email');
                 validateField('pass');
                 validateField('passConfirm');
 
-                let hasError = false;
-                if(!customId || !pn || !e || !p) hasError = true;
-                if(!/^[a-zA-Z0-9]+$/.test(customId)) hasError = true;
-                if(!/^[a-zA-Z0-9]{6,}$/.test(p)) hasError = true;
-                if(p!==pc) hasError = true;
+                let basicError = false;
+                if(!customId || !pn || !e || !p) basicError = true;
+                if(!/^[a-zA-Z0-9]+$/.test(customId)) basicError = true;
+                if(!/^[a-zA-Z0-9]{6,}$/.test(p)) basicError = true;
+                if(p!==pc) basicError = true;
 
-                if(hasError) return window.showNotify("入力内容を確認してください", "error");
+                if(basicError) return window.showNotify("入力内容を確認してください", "error");
                 
-                // ID重複チェック (Async)
+                // 同時チェック開始
                 btn.disabled = true; btn.innerText = "確認中...";
-                const isIdAvailable = await checkIdAvailability(customId);
                 
-                if(!isIdAvailable) {
-                    document.getElementById('idError').style.display = 'block';
-                    setValidationStatus('id', false);
-                    // ここでreturnせず、メールのチェック（作成試行）まで進めるにはロジックが複雑になる
-                    // Firebase Authは作成しないとメール重複がわからないため、ID重複時はここで止めるのが一般的だが
-                    // 「同時に表示してほしい」という要望のため、IDエラーフラグを立てて進むと
-                    // ID重複状態でユーザーが作成されてしまうリスクがある。
-                    // そのため「IDエラー表示を消さずに」処理を中断する形にする。
+                try {
+                    // IDチェックとメールチェックを並列実行
+                    // メールチェックは fetchSignInMethodsForEmail を使用 (User作成前チェック)
+                    const checkIdPromise = checkIdAvailability(customId);
                     
-                    btn.disabled = false; btn.innerText = "決定";
-                    return window.showNotify("入力内容を確認してください", "error");
-                } else {
-                     // IDはOK。エラー表示を消す
-                     document.getElementById('idError').style.display = 'none';
-                }
-            } else {
-                if(!e || !p) return window.showNotify("入力内容を確認してください", "error");
-            }
-            
-            btn.disabled = true; btn.innerText = "処理中...";
-            try {
-                if(currentAuthMode==='register') {
+                    // fetchSignInMethodsForEmailは、存在しない場合[]を返し、存在する場合['password']などを返す
+                    // エラーになる場合もあるのでtry-catchで囲む
+                    const checkEmailPromise = fetchSignInMethodsForEmail(auth, e)
+                        .then(methods => methods.length > 0) // trueなら使用済み
+                        .catch(() => false); // エラーなら一旦false扱い(createで弾く)
+
+                    const [isIdAvailable, isEmailTaken] = await Promise.all([checkIdPromise, checkEmailPromise]);
+
+                    let hasAsyncError = false;
+
+                    // ID判定結果のUI反映
+                    const idBtn = document.getElementById('checkIdBtn');
+                    if (!isIdAvailable) {
+                        idBtn.className = "check-id-btn error";
+                        idBtn.innerHTML = "使用されています";
+                        hasAsyncError = true;
+                    } else {
+                        // 重複なしならチェックマークへ
+                        idBtn.className = "check-id-btn success";
+                        idBtn.innerHTML = '<i class="fas fa-check"></i>';
+                    }
+
+                    // メール判定結果のUI反映
+                    if (isEmailTaken) {
+                        document.getElementById('emailError').style.display = 'block';
+                        setValidationStatus('email', false);
+                        hasAsyncError = true;
+                    }
+
+                    if (hasAsyncError) {
+                        btn.disabled = false; btn.innerText = "決定";
+                        return window.showNotify("入力内容を確認してください", "error");
+                    }
+
+                    // 両方OKなら作成へ
                     const c = await createUserWithEmailAndPassword(auth,e,p);
                     await setDoc(doc(db,"users",c.user.uid), { 
                         createdAt: new Date(),
@@ -1196,23 +1225,31 @@
                     });
                     window.showNotify("登録完了");
                     window.closeAuthModal();
-                } else {
+
+                } catch(err) {
+                    console.error(err);
+                    // createでエラーが出た場合の最終防壁
+                    if(err.code === 'auth/email-already-in-use') {
+                        document.getElementById('emailError').style.display = 'block';
+                        setValidationStatus('email', false);
+                    }
+                    window.showNotify("入力内容を確認してください", "error");
+                    btn.disabled = false; btn.innerText = "決定";
+                }
+            } else {
+                // ログイン処理
+                if(!e || !p) return window.showNotify("入力内容を確認してください", "error");
+                btn.disabled = true; btn.innerText = "処理中...";
+                try {
                     await signInWithEmailAndPassword(auth,e,p);
                     window.showNotify("ログイン成功");
                     window.closeAuthModal();
+                } catch(err) {
+                    window.showNotify("入力内容を確認してください", "error");
+                } finally {
+                    btn.disabled = false; btn.innerText = "決定";
                 }
-            } catch(err) { 
-                const code = err.code;
-                if(code === 'auth/email-already-in-use') {
-                    // ここに来たということは、IDチェックは通過しているはずだが
-                    // もし非同期のタイミング等でIDエラーが表示されていたとしても
-                    // 上書きせずにメールエラーを表示する
-                    document.getElementById('emailError').style.display = 'block';
-                    setValidationStatus('email', false);
-                } 
-                window.showNotify("入力内容を確認してください", "error");
             }
-            finally { btn.disabled = false; btn.innerText = "決定"; }
         };
 
         window.confirmLogout = () => window.showConfirmDialog("ログアウトしますか？", window.logoutExecution);
