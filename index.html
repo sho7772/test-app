@@ -6,72 +6,63 @@
     <title>マイアプリ</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* --- 基本デザイン --- */
+        /* =========================================
+           基本スタイル設定
+           ========================================= */
         body { margin: 0; padding: 0; background-color: #f5f7fa; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; color: #333; padding-bottom: 80px; }
         
-        /* ヘッダー */
+        /* ヘッダー周り */
         .header { padding: 20px; display: flex; justify-content: space-between; align-items: center; position: relative; }
         .greeting h1 { margin: 0; font-size: 24px; font-weight: bold; }
         .date { font-size: 14px; color: #666; margin-top: 5px; }
         
         .login-btn { background-color: #3498db; color: white; padding: 10px 20px; border-radius: 20px; font-size: 14px; font-weight: bold; text-decoration: none; display: inline-block; box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3); cursor: pointer; }
-        
-        /* ヘッダーアイコン */
         .header-user-icon { width: 40px; height: 40px; border-radius: 50%; background: white; object-fit: cover; box-shadow: 0 2px 5px rgba(0,0,0,0.1); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #555; overflow: hidden; }
         
-        /* 右上メニュー */
+        /* 右上のポップアップメニュー */
         #headerMenu { position: absolute; top: 70px; right: 20px; background: white; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); width: 200px; padding: 10px 0; transform-origin: top right; transform: scale(0); opacity: 0; transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 1000; }
         #headerMenu.active { transform: scale(1); opacity: 1; }
         .menu-item { padding: 15px 20px; display: flex; align-items: center; cursor: pointer; font-size: 14px; font-weight: bold; color: #555; }
         .menu-item:hover { background-color: #f9f9f9; }
-        .menu-item i { margin-right: 10px; width: 20px; text-align: center; }
         .menu-divider { border-top: 1px solid #eee; margin: 5px 0; }
 
-        /* コンテンツカード */
+        /* ホーム画面のカード類 */
         .weather-card { margin: 0 20px; background: linear-gradient(135deg, #2ecc71, #3498db); color: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 20px rgba(46, 204, 113, 0.3); }
         .temp { font-size: 48px; font-weight: bold; margin: 10px 0; }
-        
         .utility-grid { display: flex; gap: 15px; padding: 20px; }
         .utility-card { flex: 1; background: white; padding: 15px; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); text-align: center; cursor: pointer; transition: transform 0.1s; }
         .utility-card:active { transform: scale(0.98); }
 
-        /* 画面コンテナ */
+        /* 画面切り替え用コンテナ */
         .screen-container { display: none; padding: 20px; animation: fadeIn 0.3s ease; }
         .page-header { display: flex; align-items: center; margin-bottom: 20px; }
         .back-btn { font-size: 24px; color: #555; margin-right: 15px; cursor: pointer; }
         .page-title { margin: 0; font-size: 22px; font-weight: bold; }
 
+        /* 入力フォーム共通 */
         .settings-card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-        .section-label { font-size: 18px; font-weight: bold; margin-bottom: 20px; color: #3498db; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; }
         .input-group { margin-bottom: 20px; text-align: left; }
         .input-group label { display: block; font-size: 13px; color: #666; margin-bottom: 8px; font-weight: bold; }
         .input-group input, .input-group textarea { width: 100%; padding: 14px; border: 1px solid #eee; background: #f9f9f9; border-radius: 12px; box-sizing: border-box; font-size: 16px; transition: border-color 0.3s; font-family: inherit; }
         .input-group input:focus, .input-group textarea:focus { border-color: #3498db; outline: none; background: white; }
-        
         .save-btn { width: 100%; padding: 15px; background: linear-gradient(135deg, #2ecc71, #3498db); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 5px 15px rgba(46, 204, 113, 0.3); transition: all 0.3s; }
         .save-btn:disabled { background: #ccc; cursor: not-allowed; box-shadow: none; opacity: 0.7; }
-        .logout-btn-area { margin-top: 30px; text-align: center; }
-        .danger-btn { color: #e74c3c; background: none; border: 1px solid #e74c3c; padding: 10px 20px; border-radius: 20px; cursor: pointer; font-weight: bold; }
-        
-        /* 危険エリア（アカウント削除） */
-        .danger-zone { margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; }
-        .danger-title { font-size: 14px; font-weight: bold; color: #e74c3c; margin-bottom: 10px; }
-        .delete-account-btn { width: 100%; padding: 15px; background: #ffebee; color: #e74c3c; border: none; border-radius: 12px; font-size: 14px; font-weight: bold; cursor: pointer; }
 
-        /* --- プロフィールアイコン --- */
+        /* プロフィールアイコン編集エリア */
         .profile-icon-area { display: flex; flex-direction: column; align-items: center; margin-bottom: 30px; }
         .profile-avatar-large { position: relative; width: 100px; height: 100px; border-radius: 50%; background: #eee; display: flex; align-items: center; justify-content: center; font-size: 50px; color: #aaa; margin-bottom: 15px; border: 4px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.1); cursor: pointer; }
         .avatar-img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: none; }
-        .avatar-icon { display: block; }
-        .edit-badge { position: absolute; bottom: -5px; right: -5px; background: #3498db; color: white; width: 30px; height: 30px; border-radius: 50%; font-size: 14px; display: flex; align-items: center; justify-content: center; border: 2px solid white; z-index: 10; box-shadow: 0 2px 5px rgba(0,0,0,0.15); }
-
-        /* アイコンセレクター */
+        .edit-badge { position: absolute; bottom: -5px; right: -5px; background: #3498db; color: white; width: 30px; height: 30px; border-radius: 50%; font-size: 14px; display: flex; align-items: center; justify-content: center; border: 2px solid white; z-index: 10; }
+        
+        /* アイコン選択パレット */
         #iconSelector { display: none; background: #f9f9f9; padding: 15px; border-radius: 15px; margin-bottom: 20px; text-align: center; }
         .color-option, .icon-option { width: 30px; height: 30px; border-radius: 50%; display: inline-block; margin: 5px; cursor: pointer; border: 2px solid transparent; }
         .color-option.selected, .icon-option.selected { border-color: #333; transform: scale(1.1); }
         .icon-option { background: white; line-height: 30px; font-size: 16px; }
 
-        /* --- フィード (SNS) --- */
+        /* =========================================
+           フィード（タイムライン）のスタイル
+           ========================================= */
         .feed-list { display: flex; flex-direction: column; gap: 20px; padding-bottom: 40px; }
         .feed-card { background: white; border-radius: 20px; padding: 20px; box-shadow: 0 2px 15px rgba(0,0,0,0.03); position: relative; }
         .feed-header { display: flex; align-items: center; margin-bottom: 15px; }
@@ -87,44 +78,71 @@
         .feed-actions { margin-top: 15px; padding-top: 15px; border-top: 1px solid #f5f5f5; display: flex; gap: 20px; }
         .action-item { color: #888; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: color 0.2s; }
         .action-item.liked { color: #e74c3c; }
-        .action-item.liked i { font-weight: 900; }
-        
-        /* 削除ボタン（ゴミ箱） */
+        .action-item:hover { color: #3498db; }
         .post-delete-btn { position: absolute; top: 15px; right: 15px; color: #ccc; cursor: pointer; padding: 5px; font-size: 14px; }
-        .post-delete-btn:hover { color: #e74c3c; }
 
+        /* 投稿ボタン */
         .fab-btn { position: fixed; bottom: 80px; right: 20px; width: 60px; height: 60px; background: #3498db; border-radius: 50%; box-shadow: 0 5px 20px rgba(52, 152, 219, 0.4); display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; cursor: pointer; transition: transform 0.2s; z-index: 500; }
-        .fab-btn:active { transform: scale(0.9); }
 
-        /* 通知・モーダル */
-        #notificationBanner { position: fixed; top: -100px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; padding: 15px 20px; border-radius: 15px; background: white; color: #333; box-shadow: 0 10px 30px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 15px; z-index: 3000; transition: top 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        /* =========================================
+           モーダル・通知系のスタイル
+           ========================================= */
+        #notificationBanner { position: fixed; top: -100px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; padding: 15px 20px; border-radius: 15px; background: white; color: #333; box-shadow: 0 10px 30px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 15px; z-index: 3000; transition: top 0.4s; }
         #notificationIcon { font-size: 20px; }
         .success #notificationIcon { color: #2ecc71; } .error #notificationIcon { color: #e74c3c; }
 
-        #confirmModal, #authModal, #postModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2500; justify-content: center; align-items: center; }
-        .confirm-card { background: white; width: 80%; max-width: 300px; padding: 30px 25px; border-radius: 20px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); animation: popIn 0.2s ease; }
-        .auth-card { background: white; width: 85%; max-width: 350px; padding: 25px; border-radius: 20px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); animation: popIn 0.2s ease; margin: 20px 0; overflow-y: auto; max-height: 90%; }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2500; justify-content: center; align-items: center; }
+        .center-card { background: white; width: 85%; max-width: 350px; padding: 25px; border-radius: 20px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); animation: popIn 0.2s ease; overflow-y: auto; max-height: 90%; }
         
-        .confirm-msg { font-size: 16px; font-weight: bold; color: #333; margin-bottom: 10px; }
-        .confirm-sub-msg { font-size: 13px; color: #e74c3c; margin-bottom: 25px; display: none; }
-        .confirm-actions { display: flex; justify-content: space-between; gap: 10px; }
-        .btn-cancel { flex: 1; padding: 10px; border: 1px solid #ddd; background: white; color: #666; border-radius: 10px; cursor: pointer; }
-        .btn-ok { flex: 1; padding: 10px; border: none; background: #3498db; color: white; border-radius: 10px; cursor: pointer; }
-        .btn-delete { flex: 1; padding: 10px; border: none; background: #e74c3c; color: white; border-radius: 10px; cursor: pointer; }
         .switch-link { margin-top: 15px; font-size: 12px; color: #666; cursor: pointer; text-decoration: underline; }
-
-        /* 画像プレビュー */
         .post-img-preview { width: 100%; height: 150px; border-radius: 10px; background: #eee; margin-top: 10px; display: none; object-fit: cover; }
-        .post-img-area { position: relative; }
         .remove-img-btn { position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.5); color: white; border-radius: 50%; width: 25px; height: 25px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 12px; display: none; }
 
+        /* =========================================
+           ★NEW: コメント用モーダルスタイル
+           ========================================= */
+        #commentModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2800; align-items: flex-end; /* 下寄せにする */ }
+        .comment-sheet { 
+            width: 100%; max-width: 600px; height: 80vh; 
+            background: white; 
+            border-radius: 20px 20px 0 0; 
+            box-shadow: 0 -5px 30px rgba(0,0,0,0.2); 
+            display: flex; flex-direction: column; 
+            margin: 0 auto; 
+            animation: slideUp 0.3s ease-out; 
+            position: relative;
+        }
+        .comment-header { padding: 15px; text-align: center; border-bottom: 1px solid #eee; position: relative; font-weight: bold; }
+        .comment-close-btn { position: absolute; right: 15px; top: 15px; font-size: 20px; color: #999; cursor: pointer; }
+        
+        .comment-list { flex: 1; overflow-y: auto; padding: 15px; background: #f9f9f9; }
+        
+        /* 個別のコメント */
+        .comment-item { display: flex; gap: 10px; margin-bottom: 15px; }
+        .comment-avatar { width: 35px; height: 35px; border-radius: 50%; background: #ccc; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: white; font-size: 16px; overflow: hidden;}
+        .comment-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .comment-body { background: white; padding: 10px 15px; border-radius: 0 15px 15px 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); max-width: 80%; }
+        .comment-user { font-size: 12px; font-weight: bold; color: #555; margin-bottom: 3px; }
+        .comment-text { font-size: 14px; color: #333; white-space: pre-wrap; word-break: break-all; }
+        .comment-date { font-size: 10px; color: #999; margin-top: 5px; text-align: right; }
+        
+        /* コメント入力エリア */
+        .comment-input-area { padding: 10px 15px; border-top: 1px solid #eee; background: white; display: flex; gap: 10px; padding-bottom: 20px; }
+        .comment-input { flex: 1; padding: 10px; border: 1px solid #eee; border-radius: 20px; background: #f5f7fa; font-size: 14px; resize: none; height: 24px; max-height: 80px; }
+        .comment-input:focus { outline: none; border-color: #3498db; background: white; }
+        .comment-send-btn { width: 40px; height: 40px; border-radius: 50%; background: #3498db; color: white; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; }
+        .comment-send-btn:disabled { background: #ccc; }
+
+        /* 下部ナビゲーション */
         .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; z-index: 100; background: white; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #eee; }
         .nav-item { text-align: center; color: #ccc; font-size: 10px; cursor: pointer; }
         .nav-item.active { color: #3498db; }
         .nav-item i { font-size: 20px; display: block; margin-bottom: 5px; }
 
+        /* アニメーション定義 */
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes popIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
     </style>
 </head>
 <body>
@@ -134,13 +152,13 @@
         <div id="notificationText">完了</div>
     </div>
 
-    <div id="confirmModal">
-        <div class="confirm-card">
-            <div class="confirm-msg" id="confirmMsg">変更を保存しますか？</div>
-            <div class="confirm-sub-msg" id="confirmSubMsg"></div>
-            <div class="confirm-actions">
-                <button class="btn-cancel" onclick="closeConfirm()">キャンセル</button>
-                <button class="btn-ok" id="confirmOkBtn">OK</button>
+    <div id="confirmModal" class="modal-overlay">
+        <div class="center-card">
+            <div style="font-weight:bold; margin-bottom:10px;" id="confirmMsg">確認</div>
+            <div style="font-size:13px; color:#e74c3c; margin-bottom:20px; display:none;" id="confirmSubMsg"></div>
+            <div style="display:flex; gap:10px;">
+                <button style="flex:1; padding:10px; border:1px solid #ddd; background:white; border-radius:10px;" onclick="closeConfirm()">キャンセル</button>
+                <button style="flex:1; padding:10px; border:none; background:#3498db; color:white; border-radius:10px;" id="confirmOkBtn">OK</button>
             </div>
         </div>
     </div>
@@ -162,13 +180,9 @@
                 </div>
             </div>
             <div id="headerMenu">
-                <div class="menu-item" onclick="showProfile()">
-                    <i class="fas fa-id-card"></i> プロフィール
-                </div>
+                <div class="menu-item" onclick="showProfile()"><i class="fas fa-id-card"></i> プロフィール</div>
                 <div class="menu-divider"></div>
-                <div class="menu-item" onclick="showAccountSettings()">
-                    <i class="fas fa-cog"></i> 登録情報変更
-                </div>
+                <div class="menu-item" onclick="showAccountSettings()"><i class="fas fa-cog"></i> 登録情報変更</div>
             </div>
         </div>
 
@@ -217,7 +231,6 @@
         <div class="settings-card">
             <div class="profile-icon-area">
                 <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="handleImageSelect(event)">
-                
                 <div class="profile-avatar-large" id="currentAvatar" onclick="triggerImageUpload()">
                     <img id="avatarImg" class="avatar-img" src="">
                     <i id="avatarIcon" class="avatar-icon fas fa-user"></i>
@@ -227,9 +240,7 @@
                 <div id="resetIconBtn" style="font-size:12px; color:#e74c3c; margin-top:5px; cursor:pointer; display:none;" onclick="resetToDefaultIcon()">元のアイコンに戻す</div>
             </div>
 
-            <div style="text-align:center; margin-bottom:15px; font-size:12px; color:#3498db; cursor:pointer;" onclick="toggleIconSelector()">
-                またはイラストアイコンを作成する
-            </div>
+            <div style="text-align:center; margin-bottom:15px; font-size:12px; color:#3498db; cursor:pointer;" onclick="toggleIconSelector()">またはイラストアイコンを作成する</div>
 
             <div id="iconSelector">
                 <div style="font-size:12px; font-weight:bold; margin-bottom:5px;">色を選ぶ</div>
@@ -241,7 +252,6 @@
             <div class="input-group">
                 <label>公開名 (ニックネーム)</label>
                 <input type="text" id="publicName" placeholder="アプリ内で表示される名前">
-                <div style="font-size:11px; color:#999; margin-top:5px;">※この名前は他のユーザーに公開されます。本名を入力しないようご注意ください。</div>
             </div>
             <button id="saveProfileDataBtn" class="save-btn" onclick="savePublicProfile()" disabled>変更を保存する</button>
         </div>
@@ -253,44 +263,36 @@
             <h1 class="page-title">登録情報の変更</h1>
         </div>
         <div class="settings-card">
-            <div class="section-label">アカウント設定</div>
-            <div style="font-size:12px; color:#999; margin-bottom:15px;">※ここに入力した本名とメールアドレスは公開されません。</div>
+            <div style="font-size:18px; font-weight:bold; margin-bottom:20px; color:#3498db; border-bottom:2px solid #f0f0f0; padding-bottom:10px;">アカウント設定</div>
             <div class="input-group">
                 <label>お名前 (本名)</label>
-                <input type="text" id="editName" placeholder="新しい名前">
+                <input type="text" id="editName">
             </div>
             <div class="input-group">
                 <label>メールアドレス</label>
-                <input type="email" id="editEmail" placeholder="新しいメールアドレス">
+                <input type="email" id="editEmail">
             </div>
-            <div style="border-top: 1px dashed #eee; margin: 20px 0;"></div>
             <div class="input-group">
                 <label>パスワード変更</label>
                 <input type="password" id="editPass" placeholder="新しいパスワード">
-                <input type="password" id="editPassConfirm" placeholder="パスワード確認" style="margin-top:10px;">
+                <input type="password" id="editPassConfirm" placeholder="確認" style="margin-top:10px;">
             </div>
             <button id="saveAccountBtn" class="save-btn" onclick="updateAccountInfo()" disabled>変更を保存する</button>
-            <div class="logout-btn-area">
-                <button class="danger-btn" onclick="confirmLogout()">ログアウト</button>
+            <div style="margin-top:30px; text-align:center;">
+                <button style="color:#e74c3c; background:none; border:1px solid #e74c3c; padding:10px 20px; border-radius:20px; cursor:pointer; font-weight:bold;" onclick="confirmLogout()">ログアウト</button>
             </div>
-            
-            <div class="danger-zone">
-                <div class="danger-title">アカウントの削除</div>
-                <div style="font-size:12px; color:#666; margin-bottom:10px;">
-                    一度アカウントを削除すると、プロフィールや投稿したデータはすべて消去され、元に戻すことはできません。
-                </div>
-                <button class="delete-account-btn" onclick="confirmDeleteAccount()">アカウントを完全に削除する</button>
+            <div style="margin-top:40px; padding-top:20px; border-top:1px solid #eee;">
+                <button style="width:100%; padding:15px; background:#ffebee; color:#e74c3c; border:none; border-radius:12px; font-size:14px; font-weight:bold; cursor:pointer;" onclick="confirmDeleteAccount()">アカウントを完全に削除する</button>
             </div>
         </div>
     </div>
 
-    <div id="authModal">
-        <div class="auth-card">
+    <div id="authModal" class="modal-overlay">
+        <div class="center-card">
             <h2 id="modalTitle">ログイン</h2>
             <div class="input-group" id="nameGroup" style="display:none;">
                 <label>お名前 (本名)</label>
                 <input type="text" id="inputName" placeholder="例：山田太郎">
-                <div style="font-size:10px; color:#999; margin-top:3px;">※本名は公開されません</div>
             </div>
             <div class="input-group">
                 <label>メールアドレス</label>
@@ -302,16 +304,16 @@
             </div>
             <div class="input-group" id="passConfirmGroup" style="display:none;">
                 <label>パスワード (再入力)</label>
-                <input type="password" id="inputPassConfirm" placeholder="確認のためもう一度入力">
+                <input type="password" id="inputPassConfirm">
             </div>
-            <button class="save-btn" style="padding:12px;" id="authBtn" onclick="handleAuth()">決定</button>
+            <button class="save-btn" id="authBtn" onclick="handleAuth()">決定</button>
             <div class="switch-link" id="switchText" onclick="toggleMode()">登録はこちら</div>
             <div class="switch-link" onclick="closeAuthModal()">閉じる</div>
         </div>
     </div>
 
-    <div id="postModal">
-        <div class="auth-card">
+    <div id="postModal" class="modal-overlay">
+        <div class="center-card">
             <h2>新規投稿</h2>
             <div class="input-group">
                 <textarea id="postText" rows="4" placeholder="今どうしてる？" style="resize:none;"></textarea>
@@ -321,14 +323,30 @@
                     <i class="fas fa-image"></i> 写真を追加
                 </button>
                 <input type="file" id="postImageInput" accept="image/*" style="display:none;" onchange="handlePostImageSelect(event)">
-                
-                <div class="post-img-area">
+                <div style="position:relative;">
                     <img id="postImgPreview" class="post-img-preview">
                     <div id="removePostImgBtn" class="remove-img-btn" onclick="removePostImage()">✕</div>
                 </div>
             </div>
             <button class="save-btn" id="submitPostBtn" onclick="submitPost()">投稿する</button>
             <div class="switch-link" onclick="closePostModal()">閉じる</div>
+        </div>
+    </div>
+
+    <div id="commentModal">
+        <div class="comment-sheet">
+            <div class="comment-header">
+                コメント
+                <div class="comment-close-btn" onclick="closeCommentModal()">✕</div>
+            </div>
+            <div id="commentList" class="comment-list">
+                </div>
+            <div class="comment-input-area">
+                <textarea id="commentInput" class="comment-input" rows="1" placeholder="コメントを入力..."></textarea>
+                <button id="sendCommentBtn" class="comment-send-btn" onclick="submitComment()">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
         </div>
     </div>
 
@@ -345,11 +363,12 @@
         import { getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc, collection, addDoc, query, where, getDocs, orderBy, limit, onSnapshot, serverTimestamp, writeBatch, arrayUnion, arrayRemove, increment } 
             from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // Cloudinary設定
+        // ==========================================
+        // 設定定数 (Cloudinary & Firebase)
+        // ==========================================
         const CLOUDINARY_CLOUD_NAME = "dvfkc6l0d";
         const CLOUDINARY_UPLOAD_PRESET = "Nd8oj7zj";
 
-        // Firebase設定
         const firebaseConfig = {
           apiKey: "AIzaSyBzGdWG07Y_5SFmC4HOD3tde78F9HutSiI",
           authDomain: "test-app-371a4.firebaseapp.com",
@@ -359,21 +378,34 @@
           appId: "1:253478820619:web:981b0b0f252a0953e3a00e"
         };
 
+        // Firebase初期化
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
+        // ==========================================
+        // グローバル変数
+        // ==========================================
         let currentAuthMode = 'login';
-        let currentUserData = null; // Firestoreの公開データ
+        let currentUserData = null; // Firestoreのユーザー情報
         let tempIconData = { color: '#eee', icon: 'fa-user', imageUrl: null };
         let selectedFile = null;
         let selectedPostFile = null;
         let feedUnsubscribe = null; 
+        
+        // ★コメント機能用の変数
+        let currentOpenPostId = null; // 現在開いているコメント欄の投稿ID
+        let commentsUnsubscribe = null; // コメント監視の解除用
 
+        // アイコン作成用の選択肢
         const colors = ['#e74c3c', '#e67e22', '#f1c40f', '#2ecc71', '#3498db', '#9b59b6', '#95a5a6', '#34495e'];
         const icons = ['fa-user', 'fa-smile', 'fa-robot', 'fa-cat', 'fa-dog', 'fa-fish', 'fa-rocket', 'fa-star'];
 
-        // --- 共通ユーティリティ ---
+        // ==========================================
+        // 共通ユーティリティ関数
+        // ==========================================
+
+        // 通知バナーを表示する関数
         window.showNotify = (msg, type='success') => {
             const b = document.getElementById('notificationBanner');
             const t = document.getElementById('notificationText');
@@ -383,42 +415,48 @@
             b.style.top = "20px"; setTimeout(() => { b.style.top = "-100px"; }, 3000);
         };
         
-        // ダイアログ機能拡張（危険アクション対応）
+        // 確認ダイアログを表示する関数（危険な操作対応）
         window.showConfirmDialog = (msg, onOk, isDanger=false) => {
             const m = document.getElementById('confirmModal');
             document.getElementById('confirmMsg').innerText = msg;
             
             const sub = document.getElementById('confirmSubMsg');
             if(isDanger) {
-                sub.innerText = "この操作は取り消せません。";
-                sub.style.display = 'block';
+                sub.innerText = "この操作は取り消せません。"; sub.style.display = 'block';
             } else {
                 sub.style.display = 'none';
             }
 
+            // OKボタンの動作を上書き
             const ok = document.getElementById('confirmOkBtn');
             const newOk = ok.cloneNode(true); ok.parentNode.replaceChild(newOk, ok);
             newOk.onclick = () => { onOk(); window.closeConfirm(); };
             
-            // 危険アクションならボタンを赤くする
             if(isDanger) {
-                newOk.className = "btn-delete";
-                newOk.innerText = "削除する";
+                newOk.style.background = "#e74c3c"; newOk.innerText = "削除する";
             } else {
-                newOk.className = "btn-ok";
-                newOk.innerText = "OK";
+                newOk.style.background = "#3498db"; newOk.innerText = "OK";
             }
-            
             m.style.display = 'flex';
         };
         window.closeConfirm = () => document.getElementById('confirmModal').style.display = 'none';
+        
+        // HTML特殊文字のエスケープ（セキュリティ対策）
+        function escapeHtml(unsafe) {
+            if(!unsafe) return "";
+            return unsafe.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
 
-        // --- ナビゲーション制御 ---
+        // ==========================================
+        // 画面遷移・ナビゲーション制御
+        // ==========================================
         window.switchTab = (tab) => {
+            // ナビゲーションの見た目を更新
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
             if(tab === 'home') document.getElementById('navHome').classList.add('active');
             if(tab === 'feed') document.getElementById('navFeed').classList.add('active');
 
+            // 画面の表示切り替え
             document.querySelectorAll('.screen-container').forEach(e => e.style.display = 'none');
             document.getElementById('homeScreen').style.display = 'none';
 
@@ -426,27 +464,338 @@
                 document.getElementById('homeScreen').style.display = 'block';
             } else if (tab === 'feed') {
                 document.getElementById('feedScreen').style.display = 'block';
-                if(!feedUnsubscribe) loadFeed();
+                if(!feedUnsubscribe) loadFeed(); // フィード読み込み開始
+            }
+        };
+        window.goBack = () => window.switchTab('home');
+
+        // ==========================================
+        // ★コメント機能のロジック
+        // ==========================================
+
+        // コメントモーダルを開く
+        window.openCommentModal = (postId) => {
+            if(!auth.currentUser) return window.openAuthModal('login');
+            
+            currentOpenPostId = postId;
+            document.getElementById('commentModal').style.display = 'flex';
+            document.getElementById('commentInput').value = "";
+            document.getElementById('commentList').innerHTML = '<div style="text-align:center; color:#999; padding:20px;"><i class="fas fa-spinner fa-spin"></i> 読み込み中...</div>';
+
+            // リアルタイムでコメントを取得 (Firestoreのサブコレクション)
+            const commentsRef = collection(db, "posts", postId, "comments");
+            const q = query(commentsRef, orderBy("createdAt", "asc"));
+
+            if(commentsUnsubscribe) commentsUnsubscribe(); // 以前の監視があれば解除
+
+            commentsUnsubscribe = onSnapshot(q, (snapshot) => {
+                const list = document.getElementById('commentList');
+                list.innerHTML = ""; // クリア
+
+                if (snapshot.empty) {
+                    list.innerHTML = '<div style="text-align:center; color:#999; padding:20px;">まだコメントはありません。<br>一番乗りでコメントしよう！</div>';
+                    return;
+                }
+
+                snapshot.forEach(doc => {
+                    const c = doc.data();
+                    const d = c.createdAt ? c.createdAt.toDate() : new Date();
+                    const timeStr = `${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
+                    
+                    // アイコン表示用HTML生成
+                    let iconHtml = "";
+                    let bgStyle = "";
+                    if(c.userPhotoURL) {
+                        iconHtml = `<img src="${c.userPhotoURL}">`;
+                        bgStyle = "background: transparent;";
+                    } else {
+                        iconHtml = `<i class="fas ${c.userIconClass || 'fa-user'}"></i>`;
+                        bgStyle = `background: ${c.userIconColor || '#ccc'};`;
+                    }
+
+                    const html = `
+                        <div class="comment-item">
+                            <div class="comment-avatar" style="${bgStyle}">
+                                ${iconHtml}
+                            </div>
+                            <div class="comment-body">
+                                <div class="comment-user">${escapeHtml(c.userName)}</div>
+                                <div class="comment-text">${escapeHtml(c.text)}</div>
+                                <div class="comment-date">${timeStr}</div>
+                            </div>
+                        </div>
+                    `;
+                    list.insertAdjacentHTML('beforeend', html);
+                });
+                
+                // 最新のコメントが見えるように一番下へスクロール
+                list.scrollTop = list.scrollHeight;
+            });
+        };
+
+        // コメントモーダルを閉じる
+        window.closeCommentModal = () => {
+            document.getElementById('commentModal').style.display = 'none';
+            if(commentsUnsubscribe) {
+                commentsUnsubscribe(); // 監視停止
+                commentsUnsubscribe = null;
+            }
+            currentOpenPostId = null;
+        };
+
+        // コメントを送信する
+        window.submitComment = async () => {
+            const text = document.getElementById('commentInput').value.trim();
+            if(!text || !currentOpenPostId) return;
+
+            const btn = document.getElementById('sendCommentBtn');
+            btn.disabled = true;
+
+            try {
+                const user = currentUserData;
+                const userName = user.publicName || "名無しさん";
+
+                // 1. コメントをサブコレクションに追加
+                await addDoc(collection(db, "posts", currentOpenPostId, "comments"), {
+                    userId: auth.currentUser.uid,
+                    userName: userName,
+                    userIconColor: user.iconColor || '#eee',
+                    userIconClass: user.iconClass || 'fa-user',
+                    userPhotoURL: user.photoURL || null,
+                    text: text,
+                    createdAt: serverTimestamp()
+                });
+
+                // 2. 親の投稿ドキュメントの「コメント数」を+1する
+                const postRef = doc(db, "posts", currentOpenPostId);
+                await updateDoc(postRef, {
+                    commentCount: increment(1)
+                });
+
+                document.getElementById('commentInput').value = ""; // 入力欄クリア
+            } catch(e) {
+                console.error(e);
+                window.showNotify("送信エラー", "error");
+            } finally {
+                btn.disabled = false;
             }
         };
 
-        window.goBack = () => window.switchTab('home');
+        // ==========================================
+        // フィード機能 (一覧表示・投稿・いいね)
+        // ==========================================
 
-        // --- ヘッダーメニュー ---
-        window.toggleHeaderMenu = () => document.getElementById('headerMenu').classList.toggle('active');
-        document.addEventListener('click', (e) => {
-            const m = document.getElementById('headerMenu');
-            const i = document.getElementById('headerUserIcon');
-            if (m.classList.contains('active') && !m.contains(e.target) && !i.contains(e.target)) m.classList.remove('active');
-        });
+        // フィード読み込み (リアルタイム更新)
+        function loadFeed() {
+            const list = document.getElementById('feedList');
+            // 作成日時の新しい順に20件取得
+            const q = query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(20));
 
-        // --- プロフィール画面 ---
+            feedUnsubscribe = onSnapshot(q, (snapshot) => {
+                list.innerHTML = "";
+                if(snapshot.empty) {
+                    list.innerHTML = `<div style="text-align:center; padding:20px; color:#999;">投稿がありません。</div>`;
+                    return;
+                }
+
+                const currentUid = auth.currentUser ? auth.currentUser.uid : null;
+
+                snapshot.forEach(docSnap => {
+                    const post = docSnap.data();
+                    const postId = docSnap.id;
+                    const el = document.createElement('div');
+                    el.className = 'feed-card';
+                    
+                    // 日時の整形
+                    let timeStr = "";
+                    if(post.createdAt) {
+                        const d = post.createdAt.toDate();
+                        timeStr = `${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
+                    }
+
+                    // ユーザーアイコンの生成
+                    let iconHtml = post.userPhotoURL 
+                        ? `<img src="${post.userPhotoURL}">` 
+                        : `<i class="fas ${post.userIconClass || 'fa-user'}"></i>`;
+                    let bgStyle = post.userPhotoURL 
+                        ? "background: transparent;" 
+                        : `background: ${post.userIconColor || '#eee'};`;
+
+                    // 削除ボタン (自分の投稿のみ)
+                    const deleteBtnHtml = (currentUid && post.userId === currentUid) 
+                        ? `<div class="post-delete-btn" onclick="deletePost('${postId}')"><i class="fas fa-trash-alt"></i></div>` : '';
+
+                    // いいね状態の判定
+                    const likedBy = post.likedBy || [];
+                    const isLiked = currentUid && likedBy.includes(currentUid);
+                    const heartClass = isLiked ? "fas fa-heart" : "far fa-heart";
+                    const likeActionClass = isLiked ? "action-item liked" : "action-item";
+                    const likeCount = post.likes || 0;
+
+                    // ★コメント数の表示 (なければ0)
+                    const commentCount = post.commentCount || 0;
+
+                    // HTML構築
+                    el.innerHTML = `
+                        ${deleteBtnHtml}
+                        <div class="feed-header">
+                            <div class="feed-avatar" style="${bgStyle}">${iconHtml}</div>
+                            <div class="feed-info">
+                                <div class="feed-name">${escapeHtml(post.userName)}</div>
+                                <div class="feed-time">${timeStr}</div>
+                            </div>
+                        </div>
+                        <div class="feed-content">${escapeHtml(post.text)}</div>
+                        ${post.imageUrl ? `<div class="feed-image" style="display:block;"><img src="${post.imageUrl}"></div>` : ''}
+                        
+                        <div class="feed-actions">
+                            <div class="${likeActionClass}" onclick="toggleLike('${postId}')">
+                                <i class="${heartClass}"></i> ${likeCount > 0 ? likeCount : 'いいね'}
+                            </div>
+                            <div class="action-item" onclick="openCommentModal('${postId}')">
+                                <i class="far fa-comment"></i> ${commentCount > 0 ? commentCount : 'コメント'}
+                            </div>
+                        </div>
+                    `;
+                    list.appendChild(el);
+                });
+            });
+        }
+
+        // 投稿モーダル関連
+        window.openPostModal = () => {
+            if(!auth.currentUser) return window.openAuthModal('login');
+            document.getElementById('postModal').style.display = 'flex';
+            document.getElementById('postText').value = "";
+            window.removePostImage();
+        };
+        window.closePostModal = () => document.getElementById('postModal').style.display = 'none';
+
+        // 画像選択プレビュー
+        window.handlePostImageSelect = (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+            selectedPostFile = file;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = document.getElementById('postImgPreview');
+                img.src = e.target.result;
+                img.style.display = 'block';
+                document.getElementById('removePostImgBtn').style.display = 'flex';
+            };
+            reader.readAsDataURL(file);
+        };
+        window.removePostImage = () => {
+            selectedPostFile = null;
+            document.getElementById('postImageInput').value = "";
+            document.getElementById('postImgPreview').style.display = 'none';
+            document.getElementById('removePostImgBtn').style.display = 'none';
+        };
+
+        // 投稿の送信処理
+        window.submitPost = async () => {
+            const text = document.getElementById('postText').value.trim();
+            if(!text && !selectedPostFile) return window.showNotify("本文または画像を入力してください", "error");
+
+            const btn = document.getElementById('submitPostBtn');
+            btn.disabled = true; btn.innerText = "投稿中...";
+
+            try {
+                let imageUrl = null;
+                if(selectedPostFile) imageUrl = await uploadToCloudinary(selectedPostFile, 'post');
+
+                const user = currentUserData;
+                const userName = user.publicName || "名無しさん";
+
+                // Firestoreに保存
+                await addDoc(collection(db, "posts"), {
+                    userId: auth.currentUser.uid,
+                    userName: userName,
+                    userIconColor: user.iconColor || '#eee',
+                    userIconClass: user.iconClass || 'fa-user',
+                    userPhotoURL: user.photoURL || null,
+                    text: text,
+                    imageUrl: imageUrl,
+                    createdAt: serverTimestamp(),
+                    likes: 0,
+                    likedBy: [],
+                    commentCount: 0 // コメント数初期値
+                });
+
+                window.showNotify("投稿しました！");
+                window.closePostModal();
+            } catch(e) { 
+                window.showNotify("投稿エラー: " + e.message, "error"); 
+            } finally { 
+                btn.disabled = false; btn.innerText = "投稿する"; 
+            }
+        };
+
+        // いいね機能
+        window.toggleLike = async (postId) => {
+            if(!auth.currentUser) return window.openAuthModal('login');
+            try {
+                const uid = auth.currentUser.uid;
+                const postRef = doc(db, "posts", postId);
+                const p = await getDoc(postRef);
+                
+                if(p.exists()) {
+                    const data = p.data();
+                    const likedBy = data.likedBy || [];
+                    
+                    if(likedBy.includes(uid)) {
+                        await updateDoc(postRef, { likes: increment(-1), likedBy: arrayRemove(uid) });
+                    } else {
+                        await updateDoc(postRef, { likes: increment(1), likedBy: arrayUnion(uid) });
+                    }
+                }
+            } catch(e) { console.error(e); }
+        };
+
+        // 投稿削除
+        window.deletePost = (postId) => {
+            window.showConfirmDialog("この投稿を削除しますか？", async () => {
+                try {
+                    await deleteDoc(doc(db, "posts", postId));
+                    window.showNotify("投稿を削除しました");
+                } catch(e) {
+                    window.showNotify("削除失敗: " + e.message, "error");
+                }
+            }, true);
+        };
+
+        // ==========================================
+        // プロフィール・アカウント管理
+        // ==========================================
+
+        // 画像アップロード (Cloudinary)
+        async function uploadToCloudinary(file, type='profile') {
+            const user = auth.currentUser;
+            if (!user) throw new Error("ログインしていません");
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET); 
+            formData.append('public_id', `${type}_${user.uid}_${new Date().getTime()}`);
+
+            const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
+                method: 'POST', body: formData
+            });
+
+            if (!response.ok) throw new Error("画像のアップロードに失敗しました");
+            const data = await response.json();
+            return data.secure_url;
+        }
+
+        // プロフィール画面表示
         window.showProfile = () => {
             if(!auth.currentUser) return window.openAuthModal('login');
+            window.switchTab(''); // タブ非アクティブ
             document.querySelectorAll('.screen-container').forEach(e => e.style.display = 'none');
             document.getElementById('homeScreen').style.display = 'none';
             document.getElementById('profileScreen').style.display = 'block';
             
+            // 既存データのセット
             document.getElementById('publicName').value = currentUserData.publicName || "";
             tempIconData = { 
                 color: currentUserData.iconColor || '#eee', 
@@ -460,66 +809,43 @@
             checkProfileChanges();
         };
 
-        // --- アカウント設定画面 ---
-        window.showAccountSettings = () => {
-            if(!auth.currentUser) return window.openAuthModal('login');
-            document.querySelectorAll('.screen-container').forEach(e => e.style.display = 'none');
-            document.getElementById('homeScreen').style.display = 'none';
-            document.getElementById('accountSettingsScreen').style.display = 'block';
-            
-            document.getElementById('editName').value = auth.currentUser.displayName || "";
-            document.getElementById('editEmail').value = auth.currentUser.email || "";
-            document.getElementById('editPass').value = "";
-            document.getElementById('editPassConfirm').value = "";
-            checkAccountChanges();
-        };
-
-        // --- 画像アップロード ---
-        window.triggerImageUpload = () => document.getElementById('imageInput').click();
-        
-        window.handleImageSelect = (event) => {
-            const file = event.target.files[0];
-            if (!file) return;
-            selectedFile = file;
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                tempIconData.imageUrl = e.target.result;
-                renderProfileAvatar();
-                checkProfileChanges();
-            };
-            reader.readAsDataURL(file);
-        };
-
-        window.resetToDefaultIcon = () => {
-            tempIconData.imageUrl = null;
-            selectedFile = null;
-            renderProfileAvatar();
-            checkProfileChanges();
-        };
-
-        async function uploadToCloudinary(file, type='profile') {
-            const user = auth.currentUser;
-            if (!user) throw new Error("ログインしていません");
-
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET); 
-            const fileName = `${type}_${user.uid}_${new Date().getTime()}`;
-            formData.append('public_id', fileName);
-
-            const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
-                method: 'POST',
-                body: formData
-            });
-
-            if (!response.ok) {
-                const err = await response.json();
-                throw new Error("アップロード失敗: " + (err.error?.message || "設定を確認してください"));
-            }
-            const data = await response.json();
-            return data.secure_url;
+        // プロフィール変更検知
+        function checkProfileChanges() {
+            const nameChanged = document.getElementById('publicName').value !== (currentUserData.publicName || "");
+            const iconChanged = (tempIconData.color !== (currentUserData.iconColor||'#eee')) || (tempIconData.icon !== (currentUserData.iconClass||'fa-user'));
+            const imgChanged = !!selectedFile || (currentUserData.photoURL && !tempIconData.imageUrl);
+            document.getElementById('saveProfileDataBtn').disabled = !(nameChanged || iconChanged || imgChanged);
         }
+        document.getElementById('publicName').oninput = checkProfileChanges;
 
+        // プロフィール保存
+        window.savePublicProfile = async () => {
+            window.showConfirmDialog("変更を保存しますか？", async () => {
+                const newName = document.getElementById('publicName').value;
+                window.showNotify("保存中...", "success");
+                
+                try {
+                    let finalUrl = currentUserData.photoURL || null;
+                    if (!tempIconData.imageUrl && currentUserData.photoURL) finalUrl = null;
+                    if (selectedFile) finalUrl = await uploadToCloudinary(selectedFile);
+
+                    const updateData = {
+                        publicName: newName,
+                        iconColor: tempIconData.color,
+                        iconClass: tempIconData.icon,
+                        photoURL: finalUrl
+                    };
+                    
+                    await updateDoc(doc(db, "users", auth.currentUser.uid), updateData);
+                    Object.assign(currentUserData, updateData); // ローカル更新
+                    updateHeader();
+                    window.showNotify("更新しました");
+                    window.goBack();
+                } catch(e) { window.showNotify("エラー: " + e.message, "error"); }
+            });
+        };
+
+        // アバター表示更新
         function renderProfileAvatar() {
             const d = document.getElementById('currentAvatar');
             const img = document.getElementById('avatarImg');
@@ -536,7 +862,27 @@
                 rst.style.display = 'none';
             }
         }
+        
+        // 画像選択処理
+        window.triggerImageUpload = () => document.getElementById('imageInput').click();
+        window.handleImageSelect = (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+            selectedFile = file;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                tempIconData.imageUrl = e.target.result;
+                renderProfileAvatar();
+                checkProfileChanges();
+            };
+            reader.readAsDataURL(file);
+        };
+        window.resetToDefaultIcon = () => {
+            tempIconData.imageUrl = null; selectedFile = null;
+            renderProfileAvatar(); checkProfileChanges();
+        };
 
+        // アイコンセレクター生成
         window.toggleIconSelector = () => {
             const s = document.getElementById('iconSelector');
             s.style.display = s.style.display === 'block' ? 'none' : 'block';
@@ -548,58 +894,32 @@
             colors.forEach(c => {
                 const e = document.createElement('div'); e.className = 'color-option'; e.style.backgroundColor = c;
                 if(c === tempIconData.color) e.classList.add('selected');
-                e.onclick = () => { tempIconData.color = c; if(!tempIconData.imageUrl) renderProfileAvatar(); checkProfileChanges(); updateSelections(); };
+                e.onclick = () => { tempIconData.color = c; if(!tempIconData.imageUrl) renderProfileAvatar(); checkProfileChanges(); createIconSelector(); };
                 cP.appendChild(e);
             });
             icons.forEach(i => {
                 const e = document.createElement('div'); e.className = 'icon-option'; e.innerHTML = `<i class="fas ${i}"></i>`;
                 if(i === tempIconData.icon) e.classList.add('selected');
-                e.onclick = () => { tempIconData.icon = i; if(!tempIconData.imageUrl) renderProfileAvatar(); checkProfileChanges(); updateSelections(); };
+                e.onclick = () => { tempIconData.icon = i; if(!tempIconData.imageUrl) renderProfileAvatar(); checkProfileChanges(); createIconSelector(); };
                 iP.appendChild(e);
             });
         }
-        function updateSelections() {
-            document.querySelectorAll('.color-option').forEach(e => e.classList.remove('selected'));
-            document.querySelectorAll('.icon-option').forEach(e => e.classList.remove('selected'));
-            createIconSelector(); 
-        }
 
-        // --- 保存処理 ---
-        window.savePublicProfile = async () => {
-            window.showConfirmDialog("変更を保存しますか？", async () => {
-                const newName = document.getElementById('publicName').value;
-                window.showNotify("保存中...", "success");
-                
-                try {
-                    let finalUrl = currentUserData.photoURL || null;
-                    if (!tempIconData.imageUrl && currentUserData.photoURL) finalUrl = null;
-                    if (selectedFile) finalUrl = await uploadToCloudinary(selectedFile);
-
-                    const user = auth.currentUser;
-                    const updateData = {
-                        publicName: newName,
-                        iconColor: tempIconData.color,
-                        iconClass: tempIconData.icon,
-                        photoURL: finalUrl
-                    };
-                    
-                    await updateDoc(doc(db, "users", user.uid), updateData);
-                    Object.assign(currentUserData, updateData);
-                    updateHeader();
-                    window.showNotify("更新しました");
-                    window.goBack();
-
-                } catch(e) { window.showNotify("エラー: " + e.message, "error"); }
-            });
+        // ==========================================
+        // アカウント情報変更・削除・認証
+        // ==========================================
+        window.showAccountSettings = () => {
+            if(!auth.currentUser) return window.openAuthModal('login');
+            window.switchTab('');
+            document.querySelectorAll('.screen-container').forEach(e => e.style.display = 'none');
+            document.getElementById('homeScreen').style.display = 'none';
+            document.getElementById('accountSettingsScreen').style.display = 'block';
+            
+            document.getElementById('editName').value = auth.currentUser.displayName || "";
+            document.getElementById('editEmail').value = auth.currentUser.email || "";
+            document.getElementById('editPass').value = ""; document.getElementById('editPassConfirm').value = "";
+            checkAccountChanges();
         };
-
-        function checkProfileChanges() {
-            const nameChanged = document.getElementById('publicName').value !== (currentUserData.publicName || "");
-            const iconChanged = (tempIconData.color !== (currentUserData.iconColor||'#eee')) || (tempIconData.icon !== (currentUserData.iconClass||'fa-user'));
-            const imgChanged = !!selectedFile || (currentUserData.photoURL && !tempIconData.imageUrl);
-            document.getElementById('saveProfileDataBtn').disabled = !(nameChanged || iconChanged || imgChanged);
-        }
-        document.getElementById('publicName').oninput = checkProfileChanges;
 
         function checkAccountChanges() {
             const n = document.getElementById('editName').value !== (auth.currentUser.displayName || "");
@@ -622,53 +942,39 @@
                     if(n !== u.displayName) await updateProfile(u, { displayName: n });
                     if(e !== u.email) await updateEmail(u,e);
                     if(p) await updatePassword(u,p);
-
-                    updateHeader(); 
-                    window.showNotify("更新しました"); window.goBack();
+                    updateHeader(); window.showNotify("更新しました"); window.goBack();
                 } catch(err) { 
                     if(err.code==='auth/requires-recent-login') { window.showNotify("再ログインが必要です","error"); window.logoutExecution(); }
                     else window.showNotify(err.message, "error");
                 }
             });
         };
-        
-        // --- アカウント削除処理 ---
+
         window.confirmDeleteAccount = () => {
             window.showConfirmDialog("本当にアカウントを削除しますか？", async () => {
                 window.showNotify("削除処理中...", "success");
                 try {
-                    const user = auth.currentUser;
-                    const uid = user.uid;
-
-                    // 1. ユーザーの投稿を全て削除
+                    const user = auth.currentUser; const uid = user.uid;
+                    // 投稿削除
                     const q = query(collection(db, "posts"), where("userId", "==", uid));
                     const snapshot = await getDocs(q);
                     const batch = writeBatch(db);
                     snapshot.forEach((doc) => { batch.delete(doc.ref); });
                     await batch.commit();
-
-                    // 2. ユーザープロフィール削除
+                    // ユーザー情報削除
                     await deleteDoc(doc(db, "users", uid));
-
-                    // 3. アカウント削除
+                    // アカウント削除
                     await deleteUser(user);
-
-                    window.showNotify("アカウントを削除しました");
-                    setTimeout(()=>location.reload(), 1500);
-
+                    window.showNotify("削除しました"); setTimeout(()=>location.reload(), 1500);
                 } catch(error) {
-                    console.error(error);
                     if(error.code === 'auth/requires-recent-login') {
-                        window.showNotify("セキュリティのため再ログインが必要です", "error");
-                        setTimeout(() => window.logoutExecution(), 2000);
-                    } else {
-                        window.showNotify("エラー: " + error.message, "error");
-                    }
+                        window.showNotify("再ログインが必要です", "error"); setTimeout(() => window.logoutExecution(), 2000);
+                    } else { window.showNotify("エラー: " + error.message, "error"); }
                 }
             }, true);
         };
 
-        // --- 認証系 ---
+        // ログイン・認証関連
         window.openAuthModal = (mode) => {
             currentAuthMode = mode; document.getElementById('authModal').style.display = 'flex';
             const isReg = mode === 'register';
@@ -679,8 +985,6 @@
         };
         window.closeAuthModal = () => document.getElementById('authModal').style.display = 'none';
         window.toggleMode = () => window.openAuthModal(currentAuthMode==='login'?'register':'login');
-        window.confirmLogout = () => window.showConfirmDialog("ログアウトしますか？", window.logoutExecution);
-        window.logoutExecution = () => signOut(auth).then(()=>{ window.showNotify("ログアウトしました"); setTimeout(()=>location.reload(),1000); });
         
         window.handleAuth = async () => {
             const e = document.getElementById('inputEmail').value;
@@ -704,214 +1008,26 @@
                     window.showNotify("ログイン成功");
                 }
                 window.closeAuthModal();
-            } catch(err) { 
-                let msg = "エラーが発生しました";
-                const code = err.code;
-                if(code === 'auth/invalid-credential' || code === 'auth/user-not-found' || code === 'auth/wrong-password') {
-                    msg = "メールアドレスまたはパスワードが間違っています";
-                } else if(code === 'auth/email-already-in-use') {
-                    msg = "このメールアドレスは既に使用されています";
-                } else if(code === 'auth/weak-password') {
-                    msg = "パスワードは6文字以上で設定してください";
-                } else if(code === 'auth/network-request-failed') {
-                    msg = "ネットワークエラーです。通信環境を確認してください";
-                } else if(code === 'auth/invalid-email') {
-                    msg = "メールアドレスの形式が正しくありません";
-                } else {
-                    msg = err.message;
-                }
-                window.showNotify(msg, "error"); 
-            }
+            } catch(err) { window.showNotify(err.message, "error"); }
             finally { btn.disabled = false; btn.innerText = "決定"; }
         };
 
-        // --- フィード機能 (修正) ---
-        window.openPostModal = () => {
-            if(!auth.currentUser) return window.openAuthModal('login');
-            document.getElementById('postModal').style.display = 'flex';
-            document.getElementById('postText').value = "";
-            window.removePostImage();
-        };
-        window.closePostModal = () => document.getElementById('postModal').style.display = 'none';
+        window.confirmLogout = () => window.showConfirmDialog("ログアウトしますか？", window.logoutExecution);
+        window.logoutExecution = () => signOut(auth).then(()=>{ window.showNotify("ログアウトしました"); setTimeout(()=>location.reload(),1000); });
 
-        window.handlePostImageSelect = (event) => {
-            const file = event.target.files[0];
-            if (!file) return;
-            selectedPostFile = file;
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const img = document.getElementById('postImgPreview');
-                img.src = e.target.result;
-                img.style.display = 'block';
-                document.getElementById('removePostImgBtn').style.display = 'flex';
-            };
-            reader.readAsDataURL(file);
-        };
-        window.removePostImage = () => {
-            selectedPostFile = null;
-            document.getElementById('postImageInput').value = "";
-            document.getElementById('postImgPreview').style.display = 'none';
-            document.getElementById('removePostImgBtn').style.display = 'none';
-        };
+        // ==========================================
+        // 初期化・イベントリスナー
+        // ==========================================
+        
+        // ヘッダーメニュー制御
+        window.toggleHeaderMenu = () => document.getElementById('headerMenu').classList.toggle('active');
+        document.addEventListener('click', (e) => {
+            const m = document.getElementById('headerMenu');
+            const i = document.getElementById('headerUserIcon');
+            if (m.classList.contains('active') && !m.contains(e.target) && !i.contains(e.target)) m.classList.remove('active');
+        });
 
-        window.submitPost = async () => {
-            const text = document.getElementById('postText').value.trim();
-            if(!text && !selectedPostFile) return window.showNotify("本文または画像を入力してください", "error");
-
-            const btn = document.getElementById('submitPostBtn');
-            btn.disabled = true; btn.innerText = "投稿中...";
-
-            try {
-                let imageUrl = null;
-                if(selectedPostFile) imageUrl = await uploadToCloudinary(selectedPostFile, 'post');
-
-                const user = currentUserData;
-                const userName = user.publicName || "名無しさん";
-
-                // 投稿データに「いいね」用フィールド(likedBy, likeCount)を追加
-                await addDoc(collection(db, "posts"), {
-                    userId: auth.currentUser.uid,
-                    userName: userName,
-                    userIconColor: user.iconColor || '#eee',
-                    userIconClass: user.iconClass || 'fa-user',
-                    userPhotoURL: user.photoURL || null,
-                    text: text,
-                    imageUrl: imageUrl,
-                    createdAt: serverTimestamp(),
-                    likes: 0,
-                    likedBy: [] // いいねしたユーザーIDの配列
-                });
-
-                window.showNotify("投稿しました！");
-                window.closePostModal();
-            } catch(e) { window.showNotify("投稿エラー: " + e.message, "error"); }
-            finally { btn.disabled = false; btn.innerText = "投稿する"; }
-        };
-
-        // --- ★いいね・削除機能 ---
-        window.toggleLike = async (postId) => {
-            if(!auth.currentUser) return window.openAuthModal('login');
-            try {
-                const uid = auth.currentUser.uid;
-                const postRef = doc(db, "posts", postId);
-                const p = await getDoc(postRef);
-                
-                if(p.exists()) {
-                    const data = p.data();
-                    const likedBy = data.likedBy || [];
-                    
-                    if(likedBy.includes(uid)) {
-                        // いいね取り消し
-                        await updateDoc(postRef, {
-                            likes: increment(-1),
-                            likedBy: arrayRemove(uid)
-                        });
-                    } else {
-                        // いいね追加
-                        await updateDoc(postRef, {
-                            likes: increment(1),
-                            likedBy: arrayUnion(uid)
-                        });
-                    }
-                }
-            } catch(e) {
-                console.error("Like Error:", e);
-                window.showNotify("エラーが発生しました", "error");
-            }
-        };
-
-        window.deletePost = (postId) => {
-            window.showConfirmDialog("この投稿を削除しますか？", async () => {
-                try {
-                    await deleteDoc(doc(db, "posts", postId));
-                    window.showNotify("投稿を削除しました");
-                } catch(e) {
-                    window.showNotify("削除に失敗しました: " + e.message, "error");
-                }
-            }, true);
-        };
-
-        function loadFeed() {
-            const list = document.getElementById('feedList');
-            const q = query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(20));
-
-            feedUnsubscribe = onSnapshot(q, (snapshot) => {
-                list.innerHTML = "";
-                if(snapshot.empty) {
-                    list.innerHTML = `<div style="text-align:center; padding:20px; color:#999;">まだ投稿がありません。<br>最初の投稿をしてみましょう！</div>`;
-                    return;
-                }
-
-                const currentUid = auth.currentUser ? auth.currentUser.uid : null;
-
-                snapshot.forEach(docSnap => {
-                    const post = docSnap.data();
-                    const postId = docSnap.id;
-                    const el = document.createElement('div');
-                    el.className = 'feed-card';
-                    
-                    let timeStr = "";
-                    if(post.createdAt) {
-                        const d = post.createdAt.toDate();
-                        timeStr = `${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
-                    }
-
-                    let iconHtml = "";
-                    let bgStyle = "";
-                    if(post.userPhotoURL) {
-                        iconHtml = `<img src="${post.userPhotoURL}">`;
-                        bgStyle = "background: transparent;";
-                    } else {
-                        iconHtml = `<i class="fas ${post.userIconClass || 'fa-user'}"></i>`;
-                        bgStyle = `background: ${post.userIconColor || '#eee'};`;
-                    }
-
-                    // 自分の投稿なら削除ボタンを表示
-                    const isMine = currentUid && post.userId === currentUid;
-                    const deleteBtnHtml = isMine ? `<div class="post-delete-btn" onclick="deletePost('${postId}')"><i class="fas fa-trash-alt"></i></div>` : '';
-
-                    // いいね状態の判定
-                    const likedBy = post.likedBy || [];
-                    const isLiked = currentUid && likedBy.includes(currentUid);
-                    const heartClass = isLiked ? "fas fa-heart" : "far fa-heart";
-                    const likeActionClass = isLiked ? "action-item liked" : "action-item";
-                    const likeCount = post.likes || 0;
-
-                    el.innerHTML = `
-                        ${deleteBtnHtml}
-                        <div class="feed-header">
-                            <div class="feed-avatar" style="${bgStyle}">
-                                ${iconHtml}
-                            </div>
-                            <div class="feed-info">
-                                <div class="feed-name">${escapeHtml(post.userName)}</div>
-                                <div class="feed-time">${timeStr}</div>
-                            </div>
-                        </div>
-                        <div class="feed-content">${escapeHtml(post.text)}</div>
-                        ${post.imageUrl ? `<div class="feed-image" style="display:block;"><img src="${post.imageUrl}"></div>` : ''}
-                        <div class="feed-actions">
-                            <div class="${likeActionClass}" onclick="toggleLike('${postId}')">
-                                <i class="${heartClass}"></i> ${likeCount > 0 ? likeCount : 'いいね'}
-                            </div>
-                            <div class="action-item"><i class="far fa-comment"></i> コメント</div>
-                        </div>
-                    `;
-                    list.appendChild(el);
-                });
-            });
-        }
-
-        function escapeHtml(unsafe) {
-            if(!unsafe) return "";
-            return unsafe
-                 .replace(/&/g, "&amp;")
-                 .replace(/</g, "&lt;")
-                 .replace(/>/g, "&gt;")
-                 .replace(/"/g, "&quot;")
-                 .replace(/'/g, "&#039;");
-        }
-
+        // ヘッダー更新
         function updateHeader() {
             if(!currentUserData) return;
             const h = document.getElementById('headerUserIcon');
@@ -927,6 +1043,7 @@
             document.getElementById('greetingText').innerHTML = `こんにちは、<br>${name}様`;
         }
 
+        // ログイン状態監視
         onAuthStateChanged(auth, async (u) => {
             if(u) {
                 const d = await getDoc(doc(db,"users",u.uid));
@@ -942,6 +1059,7 @@
                 window.switchTab('home');
             }
         });
+
     </script>
 </body>
 </html>
