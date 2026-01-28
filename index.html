@@ -256,6 +256,14 @@
         </div>
     </div>
 
+    <div id="imageModal" class="image-modal-overlay" onclick="closeImageModal()">
+        <div class="image-modal-card" onclick="event.stopPropagation()">
+            <div class="close-img-btn-circle" onclick="closeImageModal()">
+                <i class="fas fa-times"></i>
+            </div>
+            <img class="image-modal-content" id="expandedImg">
+        </div>
+    </div>
     <div class="bottom-nav">
         <div class="nav-item active" id="navHome" onclick="switchTab('home')"><i class="fas fa-home"></i>ホーム</div>
         <div class="nav-item" id="navFeed" onclick="switchTab('feed')"><i class="fas fa-list-alt"></i>フィード</div>
