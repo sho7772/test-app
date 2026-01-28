@@ -1,10 +1,7 @@
 import { auth, db } from "./config.js";
-// Auth関連のみ auth.js からインポート
 import { updateEmail, updatePassword, reauthenticateWithCredential, deleteUser, EmailAuthProvider } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-// Firestore関連 (doc, updateDoc, getDoc をこっちに移動)
 import { doc, updateDoc, getDoc, deleteDoc, collection, query, where, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { showNotify, showConfirmDialog, switchTab, uploadToCloudinary } from "./ui.js";
-
 
 let tempIconData = { color: '#555', icon: 'fa-user', imageUrl: null };
 let selectedFile = null;
@@ -40,19 +37,33 @@ function checkProfileChanges() {
 document.getElementById('publicName').oninput = checkProfileChanges;
 document.getElementById('customId').oninput = checkProfileChanges;
 
-window.savePublicProfile = () => showConfirmDialog("変更を保存しますか？", async () => {
+// プロフィール保存：自分のデータ1件だけを更新するので一瞬で終わります
+window.savePublicProfile = () => showConfirmDialog("プロフィールを更新しますか？", async () => {
     const newName = document.getElementById('publicName').value;
     const newId = document.getElementById('customId').value;
     showNotify("保存中...", "success");
+    
     try {
+        const uid = auth.currentUser.uid;
         let finalUrl = window.currentUserData.photoURL || null;
         if (!tempIconData.imageUrl && window.currentUserData.photoURL) finalUrl = null;
         if (selectedFile) finalUrl = await uploadToCloudinary(selectedFile);
 
-        const updateData = { publicName: newName, customId: newId, iconColor: tempIconData.color, iconClass: tempIconData.icon, photoURL: finalUrl };
-        await updateDoc(doc(db, "users", auth.currentUser.uid), updateData);
-        Object.assign(window.currentUserData, updateData); // ローカル更新
-        window.updateHeader(); // app.jsの関数
+        const updateData = { 
+            publicName: newName, 
+            customId: newId, 
+            iconColor: tempIconData.color, 
+            iconClass: tempIconData.icon, 
+            photoURL: finalUrl 
+        };
+
+        // 1. usersコレクションの自分のドキュメントだけを更新
+        await updateDoc(doc(db, "users", uid), updateData);
+
+        // ローカルデータを更新してヘッダーに反映
+        Object.assign(window.currentUserData, updateData); 
+        window.updateHeader(); 
+        
         showNotify("更新しました");
         window.goBack();
     } catch(e) { showNotify("エラー: " + e.message, "error"); }
@@ -103,8 +114,6 @@ function createIconSelector() {
     });
 }
 
-// アカウント設定・削除機能は長くなるため、accountSettingsScreenのID要素に対するイベントは
-// このファイルの末尾やinit関数などで処理するのが一般的ですが、今回はwindow関数として公開します。
 window.showAccountSettings = () => {
     if(!auth.currentUser) return window.openAuthModal('login');
     switchTab('');
@@ -139,6 +148,7 @@ window.updateAccountInfo = () => {
         }
     });
 };
+
 window.confirmDeleteAccount = () => {
     const passInput = document.getElementById('confirmPassword'); passInput.value = "";
     showConfirmDialog("アカウントを完全に削除しますか？\n確認のためパスワードを入力してください", async () => {
