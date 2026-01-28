@@ -42,8 +42,6 @@ export const switchTab = (tab) => {
         document.getElementById('homeScreen').style.display = 'block';
     } else if (tab === 'feed') {
         document.getElementById('feedScreen').style.display = 'block';
-        // feed.jsのloadFeedを呼びたいが、循環参照を防ぐためカスタムイベント発火などで対応するのが理想
-        // ここでは簡易的にwindow経由で呼び出す（app.jsで紐付け）
         if(window._loadFeed) window._loadFeed();
     }
 };
@@ -73,15 +71,30 @@ export async function uploadToCloudinary(file, type='profile') {
     return data.secure_url;
 }
 
-// グローバルに公開（HTMLのonclickで使えるようにする）
+// 画像拡大モーダル
+export const openImageModal = (src) => {
+    document.body.style.overflow = 'hidden'; // 背景スクロール禁止
+    const modal = document.getElementById('imageModal');
+    const img = document.getElementById('expandedImg');
+    modal.style.display = "flex";
+    img.src = src;
+};
+
+export const closeImageModal = () => {
+    document.body.style.overflow = ''; // スクロール解除
+    const modal = document.getElementById('imageModal');
+    modal.style.display = "none";
+    document.getElementById('expandedImg').src = "";
+};
+
+// グローバル公開
 window.showNotify = showNotify;
 window.showConfirmDialog = showConfirmDialog;
 window.closeConfirm = closeConfirm;
 window.switchTab = switchTab;
 window.goBack = () => switchTab('home');
-window.openAuthModal = (mode) => {
-    // auth.jsで実装される関数を呼び出すフック
-    if(window._openAuthModal) window._openAuthModal(mode);
-};
+window.openAuthModal = (mode) => { if(window._openAuthModal) window._openAuthModal(mode); };
 window.closeAuthModal = () => document.getElementById('authModal').style.display = 'none';
 window.toggleHeaderMenu = () => document.getElementById('headerMenu').classList.toggle('active');
+window.openImageModal = openImageModal;
+window.closeImageModal = closeImageModal;
