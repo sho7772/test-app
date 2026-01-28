@@ -42,20 +42,26 @@
         .page-title { margin: 0; font-size: 22px; font-weight: bold; }
 
         .settings-card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .section-label { font-size: 18px; font-weight: bold; margin-bottom: 20px; color: #3498db; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; }
         .input-group { margin-bottom: 20px; text-align: left; }
         .input-group label { display: block; font-size: 13px; color: #666; margin-bottom: 8px; font-weight: bold; }
-        .input-group input { width: 100%; padding: 14px; border: 1px solid #eee; background: #f9f9f9; border-radius: 12px; box-sizing: border-box; font-size: 16px; }
+        .input-group input { width: 100%; padding: 14px; border: 1px solid #eee; background: #f9f9f9; border-radius: 12px; box-sizing: border-box; font-size: 16px; transition: border-color 0.3s; }
+        .input-group input:focus { border-color: #3498db; outline: none; background: white; }
         
         .save-btn { width: 100%; padding: 15px; background: linear-gradient(135deg, #2ecc71, #3498db); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 5px 15px rgba(46, 204, 113, 0.3); transition: all 0.3s; }
         .save-btn:disabled { background: #ccc; cursor: not-allowed; box-shadow: none; opacity: 0.7; }
-        .danger-btn { color: #e74c3c; background: none; border: 1px solid #e74c3c; padding: 10px 20px; border-radius: 20px; cursor: pointer; font-weight: bold; margin-top: 20px;}
-        .logout-btn-area { text-align: center; margin-top: 30px; }
+        .logout-btn-area { margin-top: 30px; text-align: center; }
+        .danger-btn { color: #e74c3c; background: none; border: 1px solid #e74c3c; padding: 10px 20px; border-radius: 20px; cursor: pointer; font-weight: bold; }
 
-        /* プロフィールアイコン周り */
+        /* --- プロフィールアイコン修正 --- */
         .profile-icon-area { display: flex; flex-direction: column; align-items: center; margin-bottom: 30px; }
-        .profile-avatar-large { width: 100px; height: 100px; border-radius: 50%; background: #eee; display: flex; align-items: center; justify-content: center; font-size: 50px; color: #aaa; margin-bottom: 15px; border: 4px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.1); cursor: pointer; position: relative; overflow: hidden; }
-        .avatar-img { width: 100%; height: 100%; object-fit: cover; display: none; }
-        .edit-badge { position: absolute; bottom: 0; right: 0; background: #3498db; color: white; width: 30px; height: 30px; border-radius: 50%; font-size: 14px; display: flex; align-items: center; justify-content: center; border: 2px solid white; z-index: 10; }
+        /* overflow: hidden を削除し、はみ出しを許可 */
+        .profile-avatar-large { position: relative; width: 100px; height: 100px; border-radius: 50%; background: #eee; display: flex; align-items: center; justify-content: center; font-size: 50px; color: #aaa; margin-bottom: 15px; border: 4px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.1); cursor: pointer; }
+        /* 画像自身を丸く切り抜く */
+        .avatar-img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: none; }
+        .avatar-icon { display: block; }
+        /* バッジの位置を少し外側にはみ出させる */
+        .edit-badge { position: absolute; bottom: -5px; right: -5px; background: #3498db; color: white; width: 30px; height: 30px; border-radius: 50%; font-size: 14px; display: flex; align-items: center; justify-content: center; border: 2px solid white; z-index: 10; box-shadow: 0 2px 5px rgba(0,0,0,0.15); }
 
         /* アイコンセレクター */
         #iconSelector { display: none; background: #f9f9f9; padding: 15px; border-radius: 15px; margin-bottom: 20px; text-align: center; }
@@ -63,19 +69,26 @@
         .color-option.selected, .icon-option.selected { border-color: #333; transform: scale(1.1); }
         .icon-option { background: white; line-height: 30px; font-size: 16px; }
 
-        /* 通知・モーダル */
+        /* --- 通知・モーダル修正 --- */
         #notificationBanner { position: fixed; top: -100px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; padding: 15px 20px; border-radius: 15px; background: white; color: #333; box-shadow: 0 10px 30px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 15px; z-index: 3000; transition: top 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         #notificationIcon { font-size: 20px; }
         .success #notificationIcon { color: #2ecc71; } .error #notificationIcon { color: #e74c3c; }
 
-        #authModal, #confirmModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2500; justify-content: center; align-items: center; }
-        .auth-card, .confirm-card { background: white; width: 80%; max-width: 300px; padding: 25px; border-radius: 20px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); animation: popIn 0.2s ease; }
-        .auth-card { max-width: 350px; overflow-y: auto; max-height: 90%; }
+        #confirmModal, #authModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2500; justify-content: center; align-items: center; }
+        /* 確認ダイアログをスッキリさせるためのpadding調整 */
+        .confirm-card { background: white; width: 80%; max-width: 300px; padding: 30px 25px; border-radius: 20px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); animation: popIn 0.2s ease; }
+        .auth-card { background: white; width: 80%; max-width: 350px; padding: 25px; border-radius: 20px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); animation: popIn 0.2s ease; margin: 20px 0; overflow-y: auto; max-height: 90%; }
+        
+        /* タイトルを非表示にし、メッセージを強調 */
+        .confirm-title { display: none; }
+        .confirm-msg { font-size: 16px; font-weight: bold; color: #333; margin-bottom: 25px; }
+        
         .confirm-actions { display: flex; justify-content: space-between; gap: 10px; }
         .btn-cancel { flex: 1; padding: 10px; border: 1px solid #ddd; background: white; color: #666; border-radius: 10px; cursor: pointer; }
         .btn-ok { flex: 1; padding: 10px; border: none; background: #3498db; color: white; border-radius: 10px; cursor: pointer; }
         .switch-link { margin-top: 15px; font-size: 12px; color: #666; cursor: pointer; text-decoration: underline; }
 
+        /* 下部メニュー */
         .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; z-index: 100; background: white; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #eee; }
         .nav-item { text-align: center; color: #ccc; font-size: 10px; cursor: pointer; }
         .nav-item.active { color: #2ecc71; }
@@ -94,8 +107,7 @@
 
     <div id="confirmModal">
         <div class="confirm-card">
-            <div class="confirm-title" id="confirmTitle">確認</div>
-            <div class="confirm-msg" id="confirmMsg">実行しますか？</div>
+            <div class="confirm-title" id="confirmTitle"></div> <div class="confirm-msg" id="confirmMsg">変更を保存しますか？</div>
             <div class="confirm-actions">
                 <button class="btn-cancel" onclick="closeConfirm()">キャンセル</button>
                 <button class="btn-ok" id="confirmOkBtn">OK</button>
@@ -193,6 +205,7 @@
             <h1 class="page-title">登録情報の変更</h1>
         </div>
         <div class="settings-card">
+            <div class="section-label">アカウント設定</div>
             <div class="input-group">
                 <label>お名前 (本名)</label>
                 <input type="text" id="editName" placeholder="新しい名前">
@@ -252,11 +265,9 @@
         import { getFirestore, doc, setDoc, getDoc, updateDoc } 
             from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // ★ Cloudinary設定 (いただいたIDを埋め込みました)
-        const CLOUDINARY_CLOUD_NAME = "dvfkc6l0d";  // Cloud Name (ユーザー名的なもの)
-        const CLOUDINARY_UPLOAD_PRESET = "Nd8oj7zj"; // Upload Preset (鍵)
+        const CLOUDINARY_CLOUD_NAME = "dvfkc6l0d";
+        const CLOUDINARY_UPLOAD_PRESET = "Nd8oj7zj";
 
-        // Firebase設定
         const firebaseConfig = {
           apiKey: "AIzaSyBzGdWG07Y_5SFmC4HOD3tde78F9HutSiI",
           authDomain: "test-app-371a4.firebaseapp.com",
@@ -278,7 +289,6 @@
         const colors = ['#e74c3c', '#e67e22', '#f1c40f', '#2ecc71', '#3498db', '#9b59b6', '#95a5a6', '#34495e'];
         const icons = ['fa-user', 'fa-smile', 'fa-robot', 'fa-cat', 'fa-dog', 'fa-fish', 'fa-rocket', 'fa-star'];
 
-        // --- 通知・共通 ---
         window.showNotify = (msg, type='success') => {
             const b = document.getElementById('notificationBanner');
             const t = document.getElementById('notificationText');
@@ -287,9 +297,11 @@
             i.className = type === 'success' ? "fas fa-check-circle" : "fas fa-exclamation-circle";
             b.style.top = "20px"; setTimeout(() => { b.style.top = "-100px"; }, 3000);
         };
-        window.showConfirmDialog = (title, msg, onOk) => {
+        
+        // 修正: タイトル引数を削除し、メッセージのみ受け取る
+        window.showConfirmDialog = (msg, onOk) => {
             const m = document.getElementById('confirmModal');
-            document.getElementById('confirmTitle').innerText = title;
+            // document.getElementById('confirmTitle').innerText = title; // 削除
             document.getElementById('confirmMsg').innerText = msg;
             const ok = document.getElementById('confirmOkBtn');
             const newOk = ok.cloneNode(true); ok.parentNode.replaceChild(newOk, ok);
@@ -304,18 +316,16 @@
             if (m.classList.contains('active') && !m.contains(e.target) && !i.contains(e.target)) m.classList.remove('active');
         });
 
-        // --- 画面遷移 ---
         window.showHome = () => {
             document.querySelectorAll('.screen-container').forEach(e => e.style.display = 'none');
             document.getElementById('homeScreen').style.display = 'block';
         };
         window.showProfile = () => {
             if(!auth.currentUser) return window.openAuthModal('login');
-            window.showHome(); // reset
+            window.showHome();
             document.getElementById('homeScreen').style.display = 'none';
             document.getElementById('profileScreen').style.display = 'block';
             
-            // データセット
             document.getElementById('publicName').value = currentUserData.publicName || "";
             tempIconData = { 
                 color: currentUserData.iconColor || '#eee', 
@@ -341,7 +351,6 @@
             checkAccountChanges();
         };
 
-        // --- 画像アップロード (Cloudinary) ---
         window.triggerImageUpload = () => document.getElementById('imageInput').click();
         
         window.handleImageSelect = (event) => {
@@ -350,7 +359,7 @@
             selectedFile = file;
             const reader = new FileReader();
             reader.onload = (e) => {
-                tempIconData.imageUrl = e.target.result; // プレビュー用
+                tempIconData.imageUrl = e.target.result;
                 renderProfileAvatar();
                 checkProfileChanges();
             };
@@ -364,7 +373,6 @@
             checkProfileChanges();
         };
 
-        // Cloudinaryへ送信する関数
         async function uploadToCloudinary(file) {
             const formData = new FormData();
             formData.append('file', file);
@@ -427,45 +435,39 @@
             createIconSelector(); 
         }
 
-        // --- 保存処理 ---
         window.savePublicProfile = async () => {
-            const newName = document.getElementById('publicName').value;
-            const btn = document.getElementById('saveProfileDataBtn');
-            btn.disabled = true; btn.innerText = "保存中...";
-            
-            try {
-                let finalUrl = currentUserData.photoURL || null;
+            // 修正: タイトル引数を削除
+            window.showConfirmDialog("変更を保存しますか？", async () => {
+                const newName = document.getElementById('publicName').value;
+                window.showNotify("保存中...", "success"); // 簡易的なローディング表示
+                
+                try {
+                    let finalUrl = currentUserData.photoURL || null;
+                    if (!tempIconData.imageUrl && currentUserData.photoURL) finalUrl = null;
+                    if (selectedFile) {
+                        finalUrl = await uploadToCloudinary(selectedFile);
+                    }
 
-                // 画像がリセットされた場合
-                if (!tempIconData.imageUrl && currentUserData.photoURL) finalUrl = null;
+                    const user = auth.currentUser;
+                    await updateDoc(doc(db, "users", user.uid), {
+                        publicName: newName,
+                        iconColor: tempIconData.color,
+                        iconClass: tempIconData.icon,
+                        photoURL: finalUrl
+                    });
 
-                // 新しい画像がある場合 -> Cloudinaryへ
-                if (selectedFile) {
-                    finalUrl = await uploadToCloudinary(selectedFile);
-                }
+                    currentUserData.publicName = newName;
+                    currentUserData.iconColor = tempIconData.color;
+                    currentUserData.iconClass = tempIconData.icon;
+                    currentUserData.photoURL = finalUrl;
+                    updateHeader();
+                    window.showNotify("更新しました");
+                    window.showHome();
 
-                const user = auth.currentUser;
-                await updateDoc(doc(db, "users", user.uid), {
-                    publicName: newName,
-                    iconColor: tempIconData.color,
-                    iconClass: tempIconData.icon,
-                    photoURL: finalUrl
-                });
-
-                // ローカル反映
-                currentUserData.publicName = newName;
-                currentUserData.iconColor = tempIconData.color;
-                currentUserData.iconClass = tempIconData.icon;
-                currentUserData.photoURL = finalUrl;
-                updateHeader();
-                window.showNotify("更新しました");
-                window.showHome();
-
-            } catch(e) { window.showNotify("エラー: " + e.message, "error"); }
-            finally { btn.disabled = false; btn.innerText = "変更を保存する"; }
+                } catch(e) { window.showNotify("エラー: " + e.message, "error"); }
+            });
         };
 
-        // --- ユーティリティ ---
         function checkProfileChanges() {
             const nameChanged = document.getElementById('publicName').value !== (currentUserData.publicName || "");
             const iconChanged = (tempIconData.color !== (currentUserData.iconColor||'#eee')) || (tempIconData.icon !== (currentUserData.iconClass||'fa-user'));
@@ -497,7 +499,6 @@
             document.getElementById('greetingText').innerHTML = `こんにちは、<br>${name}様`;
         }
 
-        // --- 認証 ---
         window.updateAccountInfo = async () => {
             const n = document.getElementById('editName').value;
             const e = document.getElementById('editEmail').value;
@@ -505,7 +506,8 @@
             const pc = document.getElementById('editPassConfirm').value;
             if(p && (p.length<6 || p!==pc)) return window.showNotify("パスワードを確認してください", "error");
             
-            window.showConfirmDialog("保存", "更新しますか？", async () => {
+            // 修正: タイトル引数を削除
+            window.showConfirmDialog("変更を保存しますか？", async () => {
                 try {
                     const u = auth.currentUser;
                     if(n !== currentUserData.name) { await updateDoc(doc(db,"users",u.uid),{name:n}); currentUserData.name=n; }
@@ -529,7 +531,8 @@
         };
         window.closeAuthModal = () => document.getElementById('authModal').style.display = 'none';
         window.toggleMode = () => window.openAuthModal(currentAuthMode==='login'?'register':'login');
-        window.confirmLogout = () => window.showConfirmDialog("ログアウト","本当にログアウトしますか？",window.logoutExecution);
+        // 修正: タイトル引数を削除
+        window.confirmLogout = () => window.showConfirmDialog("ログアウトしますか？", window.logoutExecution);
         window.logoutExecution = () => signOut(auth).then(()=>{ window.showNotify("ログアウトしました"); setTimeout(()=>location.reload(),1000); });
         
         window.handleAuth = async () => {
