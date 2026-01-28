@@ -73,7 +73,7 @@
 
         /* --- フィード (SNS) --- */
         .feed-list { display: flex; flex-direction: column; gap: 20px; padding-bottom: 40px; }
-        .feed-card { background: white; border-radius: 20px; padding: 20px; box-shadow: 0 2px 15px rgba(0,0,0,0.03); }
+        .feed-card { background: white; border-radius: 20px; padding: 20px; box-shadow: 0 2px 15px rgba(0,0,0,0.03); position: relative; }
         .feed-header { display: flex; align-items: center; margin-bottom: 15px; }
         .feed-avatar { width: 45px; height: 45px; border-radius: 50%; background: #eee; margin-right: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px; flex-shrink: 0; overflow: hidden;}
         .feed-avatar img { width: 100%; height: 100%; object-fit: cover; }
@@ -83,9 +83,15 @@
         .feed-content { font-size: 15px; line-height: 1.6; color: #444; white-space: pre-wrap; word-break: break-all; }
         .feed-image { margin-top: 15px; width: 100%; border-radius: 15px; overflow: hidden; display: none; }
         .feed-image img { width: 100%; height: auto; display: block; }
+        
         .feed-actions { margin-top: 15px; padding-top: 15px; border-top: 1px solid #f5f5f5; display: flex; gap: 20px; }
-        .action-item { color: #888; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 5px; }
-        .action-item:hover { color: #e74c3c; }
+        .action-item { color: #888; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: color 0.2s; }
+        .action-item.liked { color: #e74c3c; }
+        .action-item.liked i { font-weight: 900; }
+        
+        /* 削除ボタン（ゴミ箱） */
+        .post-delete-btn { position: absolute; top: 15px; right: 15px; color: #ccc; cursor: pointer; padding: 5px; font-size: 14px; }
+        .post-delete-btn:hover { color: #e74c3c; }
 
         .fab-btn { position: fixed; bottom: 80px; right: 20px; width: 60px; height: 60px; background: #3498db; border-radius: 50%; box-shadow: 0 5px 20px rgba(52, 152, 219, 0.4); display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; cursor: pointer; transition: transform 0.2s; z-index: 500; }
         .fab-btn:active { transform: scale(0.9); }
@@ -336,7 +342,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateEmail, updatePassword, updateProfile, deleteUser } 
             from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc, collection, addDoc, query, where, getDocs, orderBy, limit, onSnapshot, serverTimestamp, writeBatch } 
+        import { getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc, collection, addDoc, query, where, getDocs, orderBy, limit, onSnapshot, serverTimestamp, writeBatch, arrayUnion, arrayRemove, increment } 
             from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         // Cloudinary設定
@@ -626,7 +632,7 @@
             });
         };
         
-        // --- ★アカウント削除処理 ---
+        // --- アカウント削除処理 ---
         window.confirmDeleteAccount = () => {
             window.showConfirmDialog("本当にアカウントを削除しますか？", async () => {
                 window.showNotify("削除処理中...", "success");
@@ -676,7 +682,6 @@
         window.confirmLogout = () => window.showConfirmDialog("ログアウトしますか？", window.logoutExecution);
         window.logoutExecution = () => signOut(auth).then(()=>{ window.showNotify("ログアウトしました"); setTimeout(()=>location.reload(),1000); });
         
-        // --- ★修正箇所：エラーメッセージの日本語化 ---
         window.handleAuth = async () => {
             const e = document.getElementById('inputEmail').value;
             const p = document.getElementById('inputPass').value;
@@ -700,7 +705,6 @@
                 }
                 window.closeAuthModal();
             } catch(err) { 
-                // ★エラーハンドリング修正
                 let msg = "エラーが発生しました";
                 const code = err.code;
                 if(code === 'auth/invalid-credential' || code === 'auth/user-not-found' || code === 'auth/wrong-password') {
@@ -721,7 +725,7 @@
             finally { btn.disabled = false; btn.innerText = "決定"; }
         };
 
-        // --- フィード機能 ---
+        // --- フィード機能 (修正) ---
         window.openPostModal = () => {
             if(!auth.currentUser) return window.openAuthModal('login');
             document.getElementById('postModal').style.display = 'flex';
@@ -764,6 +768,7 @@
                 const user = currentUserData;
                 const userName = user.publicName || "名無しさん";
 
+                // 投稿データに「いいね」用フィールド(likedBy, likeCount)を追加
                 await addDoc(collection(db, "posts"), {
                     userId: auth.currentUser.uid,
                     userName: userName,
@@ -773,13 +778,57 @@
                     text: text,
                     imageUrl: imageUrl,
                     createdAt: serverTimestamp(),
-                    likes: 0
+                    likes: 0,
+                    likedBy: [] // いいねしたユーザーIDの配列
                 });
 
                 window.showNotify("投稿しました！");
                 window.closePostModal();
             } catch(e) { window.showNotify("投稿エラー: " + e.message, "error"); }
             finally { btn.disabled = false; btn.innerText = "投稿する"; }
+        };
+
+        // --- ★いいね・削除機能 ---
+        window.toggleLike = async (postId) => {
+            if(!auth.currentUser) return window.openAuthModal('login');
+            try {
+                const uid = auth.currentUser.uid;
+                const postRef = doc(db, "posts", postId);
+                const p = await getDoc(postRef);
+                
+                if(p.exists()) {
+                    const data = p.data();
+                    const likedBy = data.likedBy || [];
+                    
+                    if(likedBy.includes(uid)) {
+                        // いいね取り消し
+                        await updateDoc(postRef, {
+                            likes: increment(-1),
+                            likedBy: arrayRemove(uid)
+                        });
+                    } else {
+                        // いいね追加
+                        await updateDoc(postRef, {
+                            likes: increment(1),
+                            likedBy: arrayUnion(uid)
+                        });
+                    }
+                }
+            } catch(e) {
+                console.error("Like Error:", e);
+                window.showNotify("エラーが発生しました", "error");
+            }
+        };
+
+        window.deletePost = (postId) => {
+            window.showConfirmDialog("この投稿を削除しますか？", async () => {
+                try {
+                    await deleteDoc(doc(db, "posts", postId));
+                    window.showNotify("投稿を削除しました");
+                } catch(e) {
+                    window.showNotify("削除に失敗しました: " + e.message, "error");
+                }
+            }, true);
         };
 
         function loadFeed() {
@@ -793,8 +842,11 @@
                     return;
                 }
 
-                snapshot.forEach(doc => {
-                    const post = doc.data();
+                const currentUid = auth.currentUser ? auth.currentUser.uid : null;
+
+                snapshot.forEach(docSnap => {
+                    const post = docSnap.data();
+                    const postId = docSnap.id;
                     const el = document.createElement('div');
                     el.className = 'feed-card';
                     
@@ -814,7 +866,19 @@
                         bgStyle = `background: ${post.userIconColor || '#eee'};`;
                     }
 
+                    // 自分の投稿なら削除ボタンを表示
+                    const isMine = currentUid && post.userId === currentUid;
+                    const deleteBtnHtml = isMine ? `<div class="post-delete-btn" onclick="deletePost('${postId}')"><i class="fas fa-trash-alt"></i></div>` : '';
+
+                    // いいね状態の判定
+                    const likedBy = post.likedBy || [];
+                    const isLiked = currentUid && likedBy.includes(currentUid);
+                    const heartClass = isLiked ? "fas fa-heart" : "far fa-heart";
+                    const likeActionClass = isLiked ? "action-item liked" : "action-item";
+                    const likeCount = post.likes || 0;
+
                     el.innerHTML = `
+                        ${deleteBtnHtml}
                         <div class="feed-header">
                             <div class="feed-avatar" style="${bgStyle}">
                                 ${iconHtml}
@@ -827,7 +891,9 @@
                         <div class="feed-content">${escapeHtml(post.text)}</div>
                         ${post.imageUrl ? `<div class="feed-image" style="display:block;"><img src="${post.imageUrl}"></div>` : ''}
                         <div class="feed-actions">
-                            <div class="action-item"><i class="far fa-heart"></i> いいね</div>
+                            <div class="${likeActionClass}" onclick="toggleLike('${postId}')">
+                                <i class="${heartClass}"></i> ${likeCount > 0 ? likeCount : 'いいね'}
+                            </div>
                             <div class="action-item"><i class="far fa-comment"></i> コメント</div>
                         </div>
                     `;
