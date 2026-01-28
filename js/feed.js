@@ -41,7 +41,7 @@ export function loadFeed() {
             const likeActionClass = isLiked ? "action-item liked" : "action-item";
             const idDisplay = post.customId ? `<span class="feed-id">@${escapeHtml(post.customId)}</span>` : '';
 
-            // ★変更点: 画像クリック時に openImageModal を呼ぶ
+            // ★修正ポイント: this.src を使うことで、URLの記号によるエラーを回避
             el.innerHTML = `
                 ${deleteBtnHtml}
                 <div class="feed-header">
@@ -52,7 +52,7 @@ export function loadFeed() {
                     </div>
                 </div>
                 <div class="feed-content">${escapeHtml(post.text)}</div>
-                ${post.imageUrl ? `<div class="feed-image" style="display:block;"><img src="${post.imageUrl}" onclick="event.stopPropagation(); openImageModal('${post.imageUrl}')"></div>` : ''}
+                ${post.imageUrl ? `<div class="feed-image" style="display:block;"><img src="${post.imageUrl}" onclick="event.stopPropagation(); openImageModal(this.src)"></div>` : ''}
                 <div class="feed-actions">
                     <div class="${likeActionClass}" onclick="toggleLike('${postId}')">
                         <i class="${heartClass}"></i> ${post.likes || 0 > 0 ? post.likes : 'いいね'}
@@ -67,6 +67,7 @@ export function loadFeed() {
     });
 }
 
+// グローバル関数への紐付け
 window._loadFeed = loadFeed;
 window.openPostModal = () => {
     if(!auth.currentUser) return window.openAuthModal('login');
