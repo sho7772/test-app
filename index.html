@@ -71,7 +71,6 @@
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
             text-align: center;
         }
-        .auth-card h2 { margin-top: 0; color: #333; }
         .input-group { margin-bottom: 15px; text-align: left; }
         .input-group label { display: block; font-size: 12px; color: #666; margin-bottom: 5px; }
         .input-group input {
@@ -83,6 +82,7 @@
             color: white; border: none; border-radius: 10px;
             font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px;
         }
+        .submit-btn:disabled { background: #ccc; cursor: not-allowed; }
         .switch-link {
             margin-top: 15px; font-size: 12px; color: #666; cursor: pointer; text-decoration: underline;
         }
@@ -130,7 +130,7 @@
         <div class="utility-card">
             <i class="fas fa-database" style="color: #e67e22;"></i>
             <div class="utility-title">データ</div>
-            <div class="utility-desc">管理画面</div>
+            <div class="utility-desc">確認する</div>
         </div>
     </div>
 
@@ -155,124 +155,149 @@
             </div>
             <div class="input-group">
                 <label>パスワード</label>
-                <input type="password" id="inputPass" placeholder="••••••••">
+                <input type="password" id="inputPass" placeholder="6文字以上">
             </div>
 
-            <button class="submit-btn" onclick="handleAuth()">決定</button>
+            <button class="submit-btn" id="submitBtn" onclick="handleAuth()">決定</button>
             <div class="switch-link" id="switchText" onclick="toggleMode()">アカウントをお持ちでない方は登録</div>
             <div class="switch-link" onclick="closeModal()">閉じる</div>
         </div>
     </div>
 
-    <script>
-        // 現在のモード（login または register）
-        let currentMode = 'login';
+    <script type="module">
+        // あなたのプロジェクト設定（CDN経由で読み込み）
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } 
+            from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc } 
+            from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // ページ読み込み時にログイン状態をチェック
-        window.onload = function() {
-            checkLoginStatus();
+        // いただいた設定情報
+        const firebaseConfig = {
+          apiKey: "AIzaSyBzGdWG07Y_5SFmC4HOD3tde78F9HutSiI",
+          authDomain: "test-app-371a4.firebaseapp.com",
+          projectId: "test-app-371a4",
+          storageBucket: "test-app-371a4.firebasestorage.app",
+          messagingSenderId: "253478820619",
+          appId: "1:253478820619:web:981b0b0f252a0953e3a00e"
         };
 
-        // 状態チェックと画面更新
-        function checkLoginStatus() {
-            const userName = localStorage.getItem('app_user_name');
+        // Firebaseを開始
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let currentMode = 'login';
+
+        // --- 画面操作のための関数を準備（重要） ---
+        // モジュール（type="module"）の中の関数は外から見えないので、わざと見えるようにしています
+        window.openModal = (mode) => {
+            currentMode = mode;
+            document.getElementById('authModal').style.display = 'flex';
+            if (mode === 'register') {
+                document.getElementById('nameGroup').style.display = 'block';
+                document.getElementById('modalTitle').innerText = "新規登録";
+                document.getElementById('switchText').innerText = "すでにアカウントをお持ちの方はログイン";
+            } else {
+                document.getElementById('nameGroup').style.display = 'none';
+                document.getElementById('modalTitle').innerText = "ログイン";
+                document.getElementById('switchText').innerText = "アカウントをお持ちでない方は登録";
+            }
+        };
+
+        window.closeModal = () => {
+            document.getElementById('authModal').style.display = 'none';
+        };
+
+        window.toggleMode = () => {
+            window.openModal(currentMode === 'login' ? 'register' : 'login');
+        };
+
+        window.logout = () => {
+            if(confirm("ログアウトしますか？")) {
+                signOut(auth).then(() => {
+                    alert("ログアウトしました");
+                }).catch((error) => {
+                    alert("エラー: " + error.message);
+                });
+            }
+        };
+
+        // --- 認証・登録のメイン処理 ---
+        window.handleAuth = async () => {
+            const email = document.getElementById('inputEmail').value;
+            const pass = document.getElementById('inputPass').value;
+            const name = document.getElementById('inputName').value;
+            const btn = document.getElementById('submitBtn');
+
+            if (!email || !pass) { alert("入力してください"); return; }
+            btn.disabled = true; // 連打防止
+            btn.innerText = "処理中...";
+
+            try {
+                if (currentMode === 'register') {
+                    // 新規登録処理
+                    if (!name) throw new Error("お名前を入力してください");
+                    
+                    // 1. ユーザー作成
+                    const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
+                    const user = userCredential.user;
+
+                    // 2. データベース(Firestore)に名前を保存
+                    await setDoc(doc(db, "users", user.uid), {
+                        name: name,
+                        email: email,
+                        createdAt: new Date()
+                    });
+
+                    alert("登録成功！ようこそ " + name + " さん");
+                    window.closeModal();
+
+                } else {
+                    // ログイン処理
+                    await signInWithEmailAndPassword(auth, email, pass);
+                    alert("ログインしました！");
+                    window.closeModal();
+                }
+            } catch (error) {
+                console.error(error);
+                let msg = "エラーが発生しました";
+                if (error.code === 'auth/email-already-in-use') msg = "このメールアドレスは既に登録されています";
+                if (error.code === 'auth/wrong-password') msg = "パスワードが違います";
+                if (error.code === 'auth/user-not-found') msg = "ユーザーが見つかりません";
+                if (error.code === 'auth/weak-password') msg = "パスワードは6文字以上にしてください";
+                alert(msg);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "決定";
+            }
+        };
+
+        // --- ログイン状態を監視する ---
+        // ページを開いた時や、ログイン/ログアウトした時に自動で動きます
+        onAuthStateChanged(auth, async (user) => {
             const greeting = document.getElementById('greetingText');
             const loginArea = document.getElementById('loginArea');
             const userArea = document.getElementById('userArea');
 
-            if (userName) {
-                // ログインしている場合
+            if (user) {
+                // ログイン中なら、DBから名前を取得して表示
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                let userName = "メンバー";
+                if (userDoc.exists()) {
+                    userName = userDoc.data().name;
+                }
+                
                 greeting.innerHTML = `こんにちは、<br>${userName}様`;
                 loginArea.style.display = 'none';
                 userArea.style.display = 'block';
             } else {
-                // していない場合
+                // 未ログイン
                 greeting.innerHTML = `ようこそ<br>ゲスト様`;
                 loginArea.style.display = 'block';
                 userArea.style.display = 'none';
             }
-        }
-
-        // モーダルを開く
-        function openModal(mode) {
-            currentMode = mode;
-            const modal = document.getElementById('authModal');
-            const nameGroup = document.getElementById('nameGroup');
-            const title = document.getElementById('modalTitle');
-            const switchText = document.getElementById('switchText');
-
-            modal.style.display = 'flex';
-
-            if (mode === 'register') {
-                nameGroup.style.display = 'block';
-                title.innerText = "新規登録";
-                switchText.innerText = "すでにアカウントをお持ちの方はログイン";
-            } else {
-                nameGroup.style.display = 'none';
-                title.innerText = "ログイン";
-                switchText.innerText = "アカウントをお持ちでない方は登録";
-            }
-        }
-
-        // モーダルを閉じる
-        function closeModal() {
-            document.getElementById('authModal').style.display = 'none';
-        }
-
-        // ログインと登録の切り替え
-        function toggleMode() {
-            if (currentMode === 'login') {
-                openModal('register');
-            } else {
-                openModal('login');
-            }
-        }
-
-        // 決定ボタンが押された時の処理
-        function handleAuth() {
-            const name = document.getElementById('inputName').value;
-            const email = document.getElementById('inputEmail').value;
-            const pass = document.getElementById('inputPass').value;
-
-            if (!email || !pass) {
-                alert("メールアドレスとパスワードを入力してください");
-                return;
-            }
-
-            if (currentMode === 'register') {
-                if (!name) { alert("お名前を入力してください"); return; }
-                
-                // 簡易データベース（ローカルストレージ）に保存
-                localStorage.setItem('app_user_name', name);
-                localStorage.setItem('app_user_email', email);
-                localStorage.setItem('app_user_pass', pass);
-                
-                alert("登録しました！");
-                closeModal();
-                checkLoginStatus();
-
-            } else {
-                // ログイン処理（保存されたデータと照合）
-                const storedEmail = localStorage.getItem('app_user_email');
-                const storedPass = localStorage.getItem('app_user_pass');
-
-                if (email === storedEmail && pass === storedPass) {
-                    alert("ログイン成功！");
-                    closeModal();
-                    checkLoginStatus();
-                } else {
-                    alert("メールアドレスかパスワードが違います（または未登録です）");
-                }
-            }
-        }
-
-        // ログアウト（アイコンクリックで実行）
-        function logout() {
-            if(confirm("ログアウトしますか？")) {
-                localStorage.clear(); // データを消去
-                checkLoginStatus(); // 画面を元に戻す
-            }
-        }
+        });
     </script>
 </body>
 </html>
