@@ -12,6 +12,9 @@ export function loadFeed() {
     const list = document.getElementById('feedList');
     const q = query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(20));
 
+    // 前回の監視があれば解除
+    if (feedUnsubscribe) feedUnsubscribe();
+
     feedUnsubscribe = onSnapshot(q, (snapshot) => {
         list.innerHTML = "";
         if(snapshot.empty) {
@@ -32,8 +35,10 @@ export function loadFeed() {
                 timeStr = `${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
             }
 
+            // アイコンの判定ロジック
             let iconHtml = post.userPhotoURL ? `<img src="${post.userPhotoURL}">` : `<i class="fas ${post.userIconClass || 'fa-user'}"></i>`;
             let bgStyle = post.userPhotoURL ? "background: transparent;" : `background: ${post.userIconColor || '#555'};`;
+            
             const deleteBtnHtml = (currentUid && post.userId === currentUid) ? `<div class="post-delete-btn" onclick="deletePost('${postId}')"><i class="fas fa-trash-alt"></i></div>` : '';
             const likedBy = post.likedBy || [];
             const isLiked = currentUid && likedBy.includes(currentUid);
@@ -41,7 +46,10 @@ export function loadFeed() {
             const likeActionClass = isLiked ? "action-item liked" : "action-item";
             const idDisplay = post.customId ? `<span class="feed-id">@${escapeHtml(post.customId)}</span>` : '';
 
-            // ★修正ポイント: this.src を使うことで、URLの記号によるエラーを回避
+            // カウント表示のバグ修正
+            const likesCount = (post.likes || 0) > 0 ? post.likes : 'いいね';
+            const commentsCount = (post.commentCount || 0) > 0 ? post.commentCount : 'コメント';
+
             el.innerHTML = `
                 ${deleteBtnHtml}
                 <div class="feed-header">
@@ -55,10 +63,10 @@ export function loadFeed() {
                 ${post.imageUrl ? `<div class="feed-image" style="display:block;"><img src="${post.imageUrl}" onclick="event.stopPropagation(); openImageModal(this.src)"></div>` : ''}
                 <div class="feed-actions">
                     <div class="${likeActionClass}" onclick="toggleLike('${postId}')">
-                        <i class="${heartClass}"></i> ${post.likes || 0 > 0 ? post.likes : 'いいね'}
+                        <i class="${heartClass}"></i> ${likesCount}
                     </div>
                     <div class="action-item" onclick="openCommentModal('${postId}')">
-                        <i class="far fa-comment"></i> ${post.commentCount || 0 > 0 ? post.commentCount : 'コメント'}
+                        <i class="far fa-comment"></i> ${commentsCount}
                     </div>
                 </div>
             `;
@@ -100,16 +108,32 @@ function removePostImage() {
 window.submitPost = async () => {
     const text = document.getElementById('postText').value.trim();
     if(!text && !selectedPostFile) return showNotify("本文または画像を入力してください", "error");
+    
+    // ユーザー情報のロード待ちチェック
+    if (!window.currentUserData || !auth.currentUser) {
+        return showNotify("ユーザー情報を読み込み中です。少し待ってから再試行してください", "error");
+    }
+
     const btn = document.getElementById('submitPostBtn');
     btn.disabled = true; btn.innerText = "投稿中...";
     try {
         let imageUrl = null;
         if(selectedPostFile) imageUrl = await uploadToCloudinary(selectedPostFile, 'post');
+        
         const user = window.currentUserData; 
         await addDoc(collection(db, "posts"), {
-            userId: auth.currentUser.uid, userName: user.publicName || "名無しさん", customId: user.customId || "",
-            userIconColor: user.iconColor || '#555', userIconClass: user.iconClass || 'fa-user', userPhotoURL: user.photoURL || null,
-            text: text, imageUrl: imageUrl, createdAt: serverTimestamp(), likes: 0, likedBy: [], commentCount: 0 
+            userId: auth.currentUser.uid, 
+            userName: user.publicName || "名無しさん", 
+            customId: user.customId || "",
+            userIconColor: user.iconColor || '#555', 
+            userIconClass: user.iconClass || 'fa-user', 
+            userPhotoURL: user.photoURL || null, // ここで現在の画像を保存
+            text: text, 
+            imageUrl: imageUrl, 
+            createdAt: serverTimestamp(), 
+            likes: 0, 
+            likedBy: [], 
+            commentCount: 0 
         });
         showNotify("投稿しました！"); window.closePostModal();
     } catch(e) { showNotify("投稿エラー", "error"); } 
@@ -146,7 +170,7 @@ window.openCommentModal = (postId) => {
         if (snapshot.empty) { list.innerHTML = '<div style="text-align:center; color:#999; padding:20px;">コメントなし</div>'; return; }
         snapshot.forEach(doc => {
             const c = doc.data();
-            const d = c.createdAt ? c.createdAt.toDate() : new Date();
+            const d = c.createdAt ? d.createdAt.toDate() : new Date();
             const timeStr = `${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
             let iconHtml = c.userPhotoURL ? `<img src="${c.userPhotoURL}">` : `<i class="fas ${c.userIconClass || 'fa-user'}"></i>`;
             let bgStyle = c.userPhotoURL ? "background: transparent;" : `background: ${c.userIconColor || '#555'};`;
