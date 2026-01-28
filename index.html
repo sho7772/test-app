@@ -635,23 +635,18 @@
                     const uid = user.uid;
 
                     // 1. ユーザーの投稿を全て削除
-                    // ※クライアント側での一括削除（件数が多いと時間がかかるが、個人アプリならこれでOK）
                     const q = query(collection(db, "posts"), where("userId", "==", uid));
                     const snapshot = await getDocs(q);
-                    
                     const batch = writeBatch(db);
-                    snapshot.forEach((doc) => {
-                        batch.delete(doc.ref);
-                    });
+                    snapshot.forEach((doc) => { batch.delete(doc.ref); });
                     await batch.commit();
 
-                    // 2. ユーザープロフィール(Firestore)を削除
+                    // 2. ユーザープロフィール削除
                     await deleteDoc(doc(db, "users", uid));
 
-                    // 3. アカウント(Auth)を削除
+                    // 3. アカウント削除
                     await deleteUser(user);
 
-                    // 完了
                     window.showNotify("アカウントを削除しました");
                     setTimeout(()=>location.reload(), 1500);
 
@@ -664,7 +659,7 @@
                         window.showNotify("エラー: " + error.message, "error");
                     }
                 }
-            }, true); // true = 危険モード（赤ボタン）
+            }, true);
         };
 
         // --- 認証系 ---
@@ -681,6 +676,7 @@
         window.confirmLogout = () => window.showConfirmDialog("ログアウトしますか？", window.logoutExecution);
         window.logoutExecution = () => signOut(auth).then(()=>{ window.showNotify("ログアウトしました"); setTimeout(()=>location.reload(),1000); });
         
+        // --- ★修正箇所：エラーメッセージの日本語化 ---
         window.handleAuth = async () => {
             const e = document.getElementById('inputEmail').value;
             const p = document.getElementById('inputPass').value;
@@ -703,7 +699,25 @@
                     window.showNotify("ログイン成功");
                 }
                 window.closeAuthModal();
-            } catch(err) { window.showNotify(err.message,"error"); }
+            } catch(err) { 
+                // ★エラーハンドリング修正
+                let msg = "エラーが発生しました";
+                const code = err.code;
+                if(code === 'auth/invalid-credential' || code === 'auth/user-not-found' || code === 'auth/wrong-password') {
+                    msg = "メールアドレスまたはパスワードが間違っています";
+                } else if(code === 'auth/email-already-in-use') {
+                    msg = "このメールアドレスは既に使用されています";
+                } else if(code === 'auth/weak-password') {
+                    msg = "パスワードは6文字以上で設定してください";
+                } else if(code === 'auth/network-request-failed') {
+                    msg = "ネットワークエラーです。通信環境を確認してください";
+                } else if(code === 'auth/invalid-email') {
+                    msg = "メールアドレスの形式が正しくありません";
+                } else {
+                    msg = err.message;
+                }
+                window.showNotify(msg, "error"); 
+            }
             finally { btn.disabled = false; btn.innerText = "決定"; }
         };
 
