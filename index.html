@@ -81,7 +81,7 @@
         /* 使用済み (レッド) */
         .check-id-btn.error { background: #e74c3c; color: white; cursor: default; }
         /* OK (チェックマーク・透過) */
-        .check-id-btn.success { background: transparent; color: #3498db; font-size: 18px; padding: 0 10px; cursor: default; }
+        .check-id-btn.success { background: transparent; color: #3498db; font-size: 20px; padding: 0 10px; cursor: default; }
 
         /* プロフィールアイコン編集エリア */
         .profile-icon-area { display: flex; flex-direction: column; align-items: center; margin-bottom: 30px; }
@@ -1137,7 +1137,7 @@
                 const isAvailable = await checkIdAvailability(id);
                 if(isAvailable) {
                     btn.className = "check-id-btn success";
-                    btn.innerHTML = '<i class="fas fa-check"></i>';
+                    btn.innerHTML = '<i class="fas fa-check-circle"></i>';
                 } else {
                     btn.className = "check-id-btn error";
                     btn.innerHTML = "使用されています";
@@ -1176,64 +1176,85 @@
                 btn.disabled = true; btn.innerText = "確認中...";
                 
                 try {
-                    // IDチェックとメールチェックを並列実行
-                    // メールチェックは fetchSignInMethodsForEmail を使用 (User作成前チェック)
-                    const checkIdPromise = checkIdAvailability(customId);
-                    
-                    // fetchSignInMethodsForEmailは、存在しない場合[]を返し、存在する場合['password']などを返す
-                    // エラーになる場合もあるのでtry-catchで囲む
-                    const checkEmailPromise = fetchSignInMethodsForEmail(auth, e)
-                        .then(methods => methods.length > 0) // trueなら使用済み
-                        .catch(() => false); // エラーなら一旦false扱い(createで弾く)
-
-                    const [isIdAvailable, isEmailTaken] = await Promise.all([checkIdPromise, checkEmailPromise]);
-
-                    let hasAsyncError = false;
-
-                    // ID判定結果のUI反映
+                    // IDチェック
+                    const isIdAvailable = await checkIdAvailability(customId);
                     const idBtn = document.getElementById('checkIdBtn');
-                    if (!isIdAvailable) {
+
+                    // ユーザー作成を試みる（これが本当のメール重複チェックになる）
+                    let userCredential = null;
+                    let emailErrorOccurred = false;
+
+                    try {
+                        userCredential = await createUserWithEmailAndPassword(auth, e, p);
+                    } catch (authError) {
+                        if (authError.code === 'auth/email-already-in-use') {
+                            emailErrorOccurred = true;
+                        } else {
+                            throw authError; // その他のエラーは投げる
+                        }
+                    }
+
+                    // --- 判定ロジック ---
+
+                    // 1. メール重複あり、ID重複あり
+                    if (emailErrorOccurred && !isIdAvailable) {
+                        // IDエラー表示
                         idBtn.className = "check-id-btn error";
                         idBtn.innerHTML = "使用されています";
-                        hasAsyncError = true;
-                    } else {
-                        // 重複なしならチェックマークへ
-                        idBtn.className = "check-id-btn success";
-                        idBtn.innerHTML = '<i class="fas fa-check"></i>';
-                    }
-
-                    // メール判定結果のUI反映
-                    if (isEmailTaken) {
+                        // メールエラー表示
                         document.getElementById('emailError').style.display = 'block';
                         setValidationStatus('email', false);
-                        hasAsyncError = true;
-                    }
-
-                    if (hasAsyncError) {
+                        
                         btn.disabled = false; btn.innerText = "決定";
                         return window.showNotify("入力内容を確認してください", "error");
                     }
 
-                    // 両方OKなら作成へ
-                    const c = await createUserWithEmailAndPassword(auth,e,p);
-                    await setDoc(doc(db,"users",c.user.uid), { 
-                        createdAt: new Date(),
-                        publicName: pn,
-                        customId: customId, 
-                        iconColor: '#555',
-                        iconClass: 'fa-user'
-                    });
-                    window.showNotify("登録完了");
-                    window.closeAuthModal();
+                    // 2. メール重複あり、ID重複なし
+                    if (emailErrorOccurred && isIdAvailable) {
+                        // メールエラー表示のみ
+                        document.getElementById('emailError').style.display = 'block';
+                        setValidationStatus('email', false);
+                        
+                        // IDはOK表示にしてあげる
+                        idBtn.className = "check-id-btn success";
+                        idBtn.innerHTML = '<i class="fas fa-check-circle"></i>';
+
+                        btn.disabled = false; btn.innerText = "決定";
+                        return window.showNotify("入力内容を確認してください", "error");
+                    }
+
+                    // 3. メール重複なし（作成成功）、ID重複あり
+                    if (!emailErrorOccurred && !isIdAvailable) {
+                        // 作成されてしまったユーザーを即削除
+                        if (userCredential && userCredential.user) {
+                            await deleteUser(userCredential.user);
+                        }
+                        
+                        // IDエラー表示
+                        idBtn.className = "check-id-btn error";
+                        idBtn.innerHTML = "使用されています";
+                        
+                        btn.disabled = false; btn.innerText = "決定";
+                        return window.showNotify("入力内容を確認してください", "error");
+                    }
+
+                    // 4. 両方OK (作成成功かつID使用可)
+                    if (!emailErrorOccurred && isIdAvailable && userCredential) {
+                        // Firestoreに保存して完了
+                        await setDoc(doc(db,"users",userCredential.user.uid), { 
+                            createdAt: new Date(),
+                            publicName: pn,
+                            customId: customId, 
+                            iconColor: '#555',
+                            iconClass: 'fa-user'
+                        });
+                        window.showNotify("登録完了");
+                        window.closeAuthModal();
+                    }
 
                 } catch(err) {
                     console.error(err);
-                    // createでエラーが出た場合の最終防壁
-                    if(err.code === 'auth/email-already-in-use') {
-                        document.getElementById('emailError').style.display = 'block';
-                        setValidationStatus('email', false);
-                    }
-                    window.showNotify("入力内容を確認してください", "error");
+                    window.showNotify("エラーが発生しました: " + err.message, "error");
                     btn.disabled = false; btn.innerText = "決定";
                 }
             } else {
