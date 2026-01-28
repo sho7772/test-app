@@ -53,14 +53,12 @@
         .logout-btn-area { margin-top: 30px; text-align: center; }
         .danger-btn { color: #e74c3c; background: none; border: 1px solid #e74c3c; padding: 10px 20px; border-radius: 20px; cursor: pointer; font-weight: bold; }
 
-        /* --- プロフィールアイコン修正 --- */
+        /* --- プロフィールアイコン (修正版) --- */
         .profile-icon-area { display: flex; flex-direction: column; align-items: center; margin-bottom: 30px; }
-        /* overflow: hidden を削除し、はみ出しを許可 */
         .profile-avatar-large { position: relative; width: 100px; height: 100px; border-radius: 50%; background: #eee; display: flex; align-items: center; justify-content: center; font-size: 50px; color: #aaa; margin-bottom: 15px; border: 4px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.1); cursor: pointer; }
-        /* 画像自身を丸く切り抜く */
         .avatar-img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: none; }
         .avatar-icon { display: block; }
-        /* バッジの位置を少し外側にはみ出させる */
+        /* バッジを枠線の上に重ねてはみ出させる */
         .edit-badge { position: absolute; bottom: -5px; right: -5px; background: #3498db; color: white; width: 30px; height: 30px; border-radius: 50%; font-size: 14px; display: flex; align-items: center; justify-content: center; border: 2px solid white; z-index: 10; box-shadow: 0 2px 5px rgba(0,0,0,0.15); }
 
         /* アイコンセレクター */
@@ -69,26 +67,22 @@
         .color-option.selected, .icon-option.selected { border-color: #333; transform: scale(1.1); }
         .icon-option { background: white; line-height: 30px; font-size: 16px; }
 
-        /* --- 通知・モーダル修正 --- */
+        /* 通知・モーダル (スッキリ版) */
         #notificationBanner { position: fixed; top: -100px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; padding: 15px 20px; border-radius: 15px; background: white; color: #333; box-shadow: 0 10px 30px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 15px; z-index: 3000; transition: top 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         #notificationIcon { font-size: 20px; }
         .success #notificationIcon { color: #2ecc71; } .error #notificationIcon { color: #e74c3c; }
 
         #confirmModal, #authModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2500; justify-content: center; align-items: center; }
-        /* 確認ダイアログをスッキリさせるためのpadding調整 */
         .confirm-card { background: white; width: 80%; max-width: 300px; padding: 30px 25px; border-radius: 20px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); animation: popIn 0.2s ease; }
         .auth-card { background: white; width: 80%; max-width: 350px; padding: 25px; border-radius: 20px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); animation: popIn 0.2s ease; margin: 20px 0; overflow-y: auto; max-height: 90%; }
         
-        /* タイトルを非表示にし、メッセージを強調 */
         .confirm-title { display: none; }
         .confirm-msg { font-size: 16px; font-weight: bold; color: #333; margin-bottom: 25px; }
-        
         .confirm-actions { display: flex; justify-content: space-between; gap: 10px; }
         .btn-cancel { flex: 1; padding: 10px; border: 1px solid #ddd; background: white; color: #666; border-radius: 10px; cursor: pointer; }
         .btn-ok { flex: 1; padding: 10px; border: none; background: #3498db; color: white; border-radius: 10px; cursor: pointer; }
         .switch-link { margin-top: 15px; font-size: 12px; color: #666; cursor: pointer; text-decoration: underline; }
 
-        /* 下部メニュー */
         .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; z-index: 100; background: white; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #eee; }
         .nav-item { text-align: center; color: #ccc; font-size: 10px; cursor: pointer; }
         .nav-item.active { color: #2ecc71; }
@@ -266,6 +260,7 @@
         import { getFirestore, doc, setDoc, getDoc, updateDoc } 
             from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+        // IDとPresetを設定
         const CLOUDINARY_CLOUD_NAME = "dvfkc6l0d";
         const CLOUDINARY_UPLOAD_PRESET = "Nd8oj7zj";
 
@@ -372,7 +367,7 @@
             checkProfileChanges();
         };
 
-        // --- ★上書きアップロード対応版 ---
+        // --- ★決定版：IDを残しつつキャッシュを回避するアップロード関数 ---
         async function uploadToCloudinary(file) {
             const user = auth.currentUser;
             if (!user) throw new Error("ログインしていません");
@@ -380,8 +375,11 @@
             const formData = new FormData();
             formData.append('file', file);
             formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET); 
-            // ファイル名を「profile_ユーザーID」に固定（これで上書きされる）
-            formData.append('public_id', `profile_${user.uid}`);
+            
+            // ★ポイント: ファイル名にIDと現在時刻を入れる
+            // IDが入るので誰の画像か分かる & 時刻が入るので毎回ファイル名が変わり確実に保存される
+            const fileName = `profile_${user.uid}_${new Date().getTime()}`;
+            formData.append('public_id', fileName);
 
             const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
                 method: 'POST',
@@ -391,11 +389,11 @@
             if (!response.ok) {
                 const err = await response.json();
                 console.error("Cloudinary Error:", err);
-                throw new Error("アップロード失敗: 設定を確認してください");
+                // エラー詳細を表示
+                throw new Error("アップロード失敗: " + (err.error?.message || "設定を確認してください"));
             }
             const data = await response.json();
-            // キャッシュ対策で時間を付与
-            return `${data.secure_url}?v=${new Date().getTime()}`;
+            return data.secure_url;
         }
 
         function renderProfileAvatar() {
