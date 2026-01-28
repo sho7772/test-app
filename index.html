@@ -73,19 +73,30 @@
             transition: border-color 0.3s;
         }
         .input-group input:focus { border-color: #3498db; outline: none; background: white; }
+        
+        /* 保存ボタン（通常時と無効時） */
         .save-btn {
             width: 100%; padding: 15px; background: linear-gradient(135deg, #2ecc71, #3498db);
             color: white; border: none; border-radius: 12px;
             font-size: 16px; font-weight: bold; cursor: pointer;
             box-shadow: 0 5px 15px rgba(46, 204, 113, 0.3);
+            transition: all 0.3s;
         }
+        /* ボタンが無効（disabled）の時のスタイル */
+        .save-btn:disabled {
+            background: #ccc; /* グレー */
+            cursor: not-allowed;
+            box-shadow: none;
+            opacity: 0.7;
+        }
+
         .logout-btn-area { margin-top: 30px; text-align: center; }
         .danger-btn {
             color: #e74c3c; background: none; border: 1px solid #e74c3c;
             padding: 10px 20px; border-radius: 20px; cursor: pointer; font-weight: bold;
         }
 
-        /* --- ✨ 新機能: 通知バナー (Toast) --- */
+        /* --- ✨ 通知バナー (Toast) --- */
         #notificationBanner {
             position: fixed; top: -100px; left: 50%; transform: translateX(-50%);
             width: 90%; max-width: 400px;
@@ -101,7 +112,7 @@
         .success #notificationIcon { color: #2ecc71; }
         .error #notificationIcon { color: #e74c3c; }
 
-        /* --- ✨ 新機能: 確認ダイアログ (Confirm Modal) --- */
+        /* --- ✨ 確認ダイアログ --- */
         #confirmModal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.5); z-index: 2500;
@@ -125,15 +136,16 @@
             color: white; border-radius: 10px; cursor: pointer; font-weight: bold;
         }
 
-        /* --- 既存モーダル --- */
+        /* --- 認証モーダル --- */
         #authModal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.5); z-index: 2000;
-            justify-content: center; align-items: center;
+            justify-content: center; align-items: center; overflow-y: auto;
         }
         .auth-card {
             background: white; width: 85%; max-width: 350px;
             padding: 30px; border-radius: 20px; text-align: center;
+            margin: 20px 0; /* スクロール時の余白 */
         }
         .switch-link { margin-top: 15px; font-size: 12px; color: #666; cursor: pointer; text-decoration: underline; }
 
@@ -222,12 +234,16 @@
                 <label>メールアドレス</label>
                 <input type="email" id="editEmail" placeholder="新しいメールアドレス">
             </div>
+            
+            <div style="border-top: 1px dashed #eee; margin: 20px 0;"></div>
+            
             <div class="input-group">
-                <label>パスワード変更</label>
-                <input type="password" id="editPass" placeholder="新しいパスワード">
+                <label>パスワード変更 (必要な場合のみ)</label>
+                <input type="password" id="editPass" placeholder="新しいパスワード (6文字以上)">
+                <input type="password" id="editPassConfirm" placeholder="パスワード確認 (再入力)" style="margin-top:10px;">
             </div>
 
-            <button class="save-btn" onclick="updateProfile()">変更を保存する</button>
+            <button id="saveProfileBtn" class="save-btn" onclick="updateProfile()" disabled>変更を保存する</button>
 
             <div class="logout-btn-area">
                 <button class="danger-btn" onclick="confirmLogout()">ログアウト</button>
@@ -246,7 +262,7 @@
             <h2 id="modalTitle">ログイン</h2>
             <div class="input-group" id="nameGroup" style="display:none;">
                 <label>お名前</label>
-                <input type="text" id="inputName" placeholder="例：つばさ">
+                <input type="text" id="inputName" placeholder="例：山田太郎">
             </div>
             <div class="input-group">
                 <label>メールアドレス</label>
@@ -256,6 +272,12 @@
                 <label>パスワード</label>
                 <input type="password" id="inputPass" placeholder="••••••••">
             </div>
+            
+            <div class="input-group" id="passConfirmGroup" style="display:none;">
+                <label>パスワード (再入力)</label>
+                <input type="password" id="inputPassConfirm" placeholder="確認のためもう一度入力">
+            </div>
+
             <button class="save-btn" style="padding:12px;" id="authBtn" onclick="handleAuth()">決定</button>
             <div class="switch-link" id="switchText" onclick="toggleMode()">登録はこちら</div>
             <div class="switch-link" onclick="closeAuthModal()">閉じる</div>
@@ -285,55 +307,32 @@
         let currentAuthMode = 'login';
         let currentUserData = null;
 
-        // --- ✨ 通知・ダイアログ用の便利関数 ---
-        
-        // 通知を表示する関数
+        // --- 通知・ダイアログ ---
         window.showNotify = (msg, type = 'success') => {
             const banner = document.getElementById('notificationBanner');
             const text = document.getElementById('notificationText');
             const icon = document.getElementById('notificationIcon');
-            
             text.innerText = msg;
-            banner.className = type; // success or error
-            
-            // アイコン切り替え
+            banner.className = type;
             if(type === 'success') icon.className = "fas fa-check-circle";
             else icon.className = "fas fa-exclamation-circle";
-
-            // 表示（上から降りてくる）
             banner.style.top = "20px";
-
-            // 3秒後に隠す
-            setTimeout(() => {
-                banner.style.top = "-100px";
-            }, 3000);
+            setTimeout(() => { banner.style.top = "-100px"; }, 3000);
         };
 
-        // 確認ダイアログを表示する関数
         window.showConfirmDialog = (title, msg, onOk) => {
             const modal = document.getElementById('confirmModal');
             document.getElementById('confirmTitle').innerText = title;
             document.getElementById('confirmMsg').innerText = msg;
-            
-            // OKボタンを押した時の動作を設定
             const okBtn = document.getElementById('confirmOkBtn');
-            // 既存のイベントを消すために再生成（簡易的な方法）
             const newOkBtn = okBtn.cloneNode(true);
             okBtn.parentNode.replaceChild(newOkBtn, okBtn);
-            
-            newOkBtn.onclick = () => {
-                onOk(); // 指定された動作を実行
-                window.closeConfirm();
-            };
-            
+            newOkBtn.onclick = () => { onOk(); window.closeConfirm(); };
             modal.style.display = 'flex';
         };
+        window.closeConfirm = () => { document.getElementById('confirmModal').style.display = 'none'; };
 
-        window.closeConfirm = () => {
-            document.getElementById('confirmModal').style.display = 'none';
-        };
-
-        // --- 画面遷移 ---
+        // --- 画面遷移とマイページロジック ---
         window.showMypage = () => {
             if (!auth.currentUser) {
                 window.showNotify("ログインしてください", "error");
@@ -343,9 +342,39 @@
             document.getElementById('homeScreen').style.display = 'none';
             document.getElementById('mypageScreen').style.display = 'block';
             
-            if (currentUserData) document.getElementById('editName').value = currentUserData.name || "";
-            document.getElementById('editEmail').value = auth.currentUser.email || "";
-            document.getElementById('editPass').value = "";
+            // フォーム初期化
+            const nameInput = document.getElementById('editName');
+            const emailInput = document.getElementById('editEmail');
+            const passInput = document.getElementById('editPass');
+            const passConfirmInput = document.getElementById('editPassConfirm');
+            const saveBtn = document.getElementById('saveProfileBtn');
+
+            if (currentUserData) nameInput.value = currentUserData.name || "";
+            emailInput.value = auth.currentUser.email || "";
+            passInput.value = "";
+            passConfirmInput.value = "";
+            
+            // ボタンを最初は無効化（変更がないため）
+            saveBtn.disabled = true;
+
+            // 変更検知のためのイベントリスナー
+            const checkChanges = () => {
+                const isNameChanged = nameInput.value !== (currentUserData.name || "");
+                const isEmailChanged = emailInput.value !== auth.currentUser.email;
+                const isPassEntered = passInput.value.length > 0;
+
+                // 何か一つでも変わっていればボタンを有効化
+                if (isNameChanged || isEmailChanged || isPassEntered) {
+                    saveBtn.disabled = false;
+                } else {
+                    saveBtn.disabled = true;
+                }
+            };
+
+            // 各入力欄でキーを打つたびにチェック
+            nameInput.oninput = checkChanges;
+            emailInput.oninput = checkChanges;
+            passInput.oninput = checkChanges;
         };
 
         window.showHome = () => {
@@ -355,12 +384,25 @@
 
         // --- プロフィール更新 ---
         window.updateProfile = async () => {
-            window.showConfirmDialog("変更の保存", "登録情報を更新しますか？", async () => {
-                const newName = document.getElementById('editName').value;
-                const newEmail = document.getElementById('editEmail').value;
-                const newPass = document.getElementById('editPass').value;
-                const user = auth.currentUser;
+            const newName = document.getElementById('editName').value;
+            const newEmail = document.getElementById('editEmail').value;
+            const newPass = document.getElementById('editPass').value;
+            const newPassConfirm = document.getElementById('editPassConfirm').value;
+            const user = auth.currentUser;
 
+            // パスワード変更時のチェック
+            if (newPass) {
+                if (newPass.length < 6) {
+                    window.showNotify("パスワードは6文字以上にしてください", "error");
+                    return;
+                }
+                if (newPass !== newPassConfirm) {
+                    window.showNotify("確認用パスワードが一致しません", "error");
+                    return;
+                }
+            }
+
+            window.showConfirmDialog("変更の保存", "登録情報を更新しますか？", async () => {
                 try {
                     if (newName && newName !== currentUserData.name) {
                         await updateDoc(doc(db, "users", user.uid), { name: newName });
@@ -376,7 +418,7 @@
                 } catch (error) {
                     console.error(error);
                     if (error.code === 'auth/requires-recent-login') {
-                        window.showNotify("セキュリティのため再ログインが必要です", "error");
+                        window.showNotify("再ログインが必要です", "error");
                         window.logoutExecution();
                     } else {
                         window.showNotify(error.message, "error");
@@ -392,13 +434,16 @@
             const title = document.getElementById('modalTitle');
             const switchText = document.getElementById('switchText');
             const nameGroup = document.getElementById('nameGroup');
+            const passConfirmGroup = document.getElementById('passConfirmGroup');
 
             if (mode === 'register') {
                 nameGroup.style.display = 'block';
+                passConfirmGroup.style.display = 'block'; // 確認用を表示
                 title.innerText = "新規登録";
                 switchText.innerText = "ログインへ戻る";
             } else {
                 nameGroup.style.display = 'none';
+                passConfirmGroup.style.display = 'none'; // 確認用を隠す
                 title.innerText = "ログイン";
                 switchText.innerText = "登録はこちら";
             }
@@ -407,7 +452,6 @@
         window.closeAuthModal = () => document.getElementById('authModal').style.display = 'none';
         window.toggleMode = () => window.openAuthModal(currentAuthMode === 'login' ? 'register' : 'login');
 
-        // ログアウト確認
         window.confirmLogout = () => {
             window.showConfirmDialog("ログアウト", "本当にログアウトしますか？", () => {
                 window.logoutExecution();
@@ -417,17 +461,31 @@
         window.logoutExecution = () => {
             signOut(auth).then(() => {
                 window.showNotify("ログアウトしました", "success");
-                setTimeout(() => window.location.reload(), 1000); // 少し待ってリロード
+                setTimeout(() => window.location.reload(), 1000);
             });
         };
 
         window.handleAuth = async () => {
             const email = document.getElementById('inputEmail').value;
             const pass = document.getElementById('inputPass').value;
+            const passConfirm = document.getElementById('inputPassConfirm').value;
             const name = document.getElementById('inputName').value;
             const btn = document.getElementById('authBtn');
 
             if (!email || !pass) { window.showNotify("入力してください", "error"); return; }
+            
+            // 新規登録時のパスワード確認チェック
+            if (currentAuthMode === 'register') {
+                if (pass !== passConfirm) {
+                    window.showNotify("パスワードが一致しません", "error");
+                    return;
+                }
+                if (pass.length < 6) {
+                    window.showNotify("パスワードは6文字以上にしてください", "error");
+                    return;
+                }
+            }
+
             btn.disabled = true; btn.innerText = "処理中...";
 
             try {
