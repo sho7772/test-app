@@ -18,7 +18,6 @@
         
         .login-btn { background-color: #3498db; color: white; padding: 10px 20px; border-radius: 20px; font-size: 14px; font-weight: bold; text-decoration: none; display: inline-block; box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3); cursor: pointer; }
         
-        /* ★修正: デフォルトをダークグレーにするため背景色を変更 */
         .header-user-icon { width: 40px; height: 40px; border-radius: 50%; background: #555; object-fit: cover; box-shadow: 0 2px 5px rgba(0,0,0,0.1); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 20px; color: white; overflow: hidden; }
         
         /* 右上のポップアップメニュー */
@@ -52,7 +51,6 @@
 
         /* プロフィールアイコン編集エリア */
         .profile-icon-area { display: flex; flex-direction: column; align-items: center; margin-bottom: 30px; }
-        /* ★修正: デフォルト背景をダークグレーに */
         .profile-avatar-large { position: relative; width: 100px; height: 100px; border-radius: 50%; background: #555; display: flex; align-items: center; justify-content: center; font-size: 50px; color: white; margin-bottom: 15px; border: 4px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.1); cursor: pointer; }
         .avatar-img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: none; }
         .edit-badge { position: absolute; bottom: -5px; right: -5px; background: #3498db; color: white; width: 30px; height: 30px; border-radius: 50%; font-size: 14px; display: flex; align-items: center; justify-content: center; border: 2px solid white; z-index: 10; }
@@ -157,6 +155,9 @@
         <div class="center-card">
             <div style="font-weight:bold; margin-bottom:10px;" id="confirmMsg">確認</div>
             <div style="font-size:13px; color:#e74c3c; margin-bottom:20px; display:none;" id="confirmSubMsg"></div>
+            
+            <input type="password" id="confirmPassword" placeholder="パスワードを入力" style="display:none; width:90%; margin:0 auto 20px auto; padding:10px; border:1px solid #eee; border-radius:10px; box-sizing:border-box;">
+
             <div style="display:flex; gap:10px;">
                 <button style="flex:1; padding:10px; border:1px solid #ddd; background:white; border-radius:10px;" onclick="closeConfirm()">キャンセル</button>
                 <button style="flex:1; padding:10px; border:none; background:#3498db; color:white; border-radius:10px;" id="confirmOkBtn">OK</button>
@@ -347,8 +348,7 @@
                 コメント
                 <div class="comment-close-btn" onclick="closeCommentModal()">✕</div>
             </div>
-            <div id="commentList" class="comment-list">
-                </div>
+            <div id="commentList" class="comment-list"></div>
             <div class="comment-input-area">
                 <textarea id="commentInput" class="comment-input" rows="1" placeholder="コメントを入力..."></textarea>
                 <button id="sendCommentBtn" class="comment-send-btn" onclick="submitComment()">
@@ -366,7 +366,8 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateEmail, updatePassword, updateProfile, deleteUser } 
+        // ★修正: reauthenticateWithCredential と EmailAuthProvider をインポートに追加
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateEmail, updatePassword, updateProfile, deleteUser, reauthenticateWithCredential, EmailAuthProvider } 
             from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc, collection, addDoc, query, where, getDocs, orderBy, limit, onSnapshot, serverTimestamp, writeBatch, arrayUnion, arrayRemove, increment } 
             from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -386,7 +387,6 @@
           appId: "1:253478820619:web:981b0b0f252a0953e3a00e"
         };
 
-        // Firebase初期化
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
@@ -395,14 +395,12 @@
         // グローバル変数
         // ==========================================
         let currentAuthMode = 'login';
-        let currentUserData = null; // Firestoreのユーザー情報
-        // ★デフォルト色をダークグレー(#555)に変更
+        let currentUserData = null; 
         let tempIconData = { color: '#555', icon: 'fa-user', imageUrl: null };
         let selectedFile = null;
         let selectedPostFile = null;
         let feedUnsubscribe = null; 
         
-        // ★コメント機能用の変数
         let currentOpenPostId = null;
         let commentsUnsubscribe = null;
 
@@ -412,7 +410,6 @@
         // ==========================================
         // 共通ユーティリティ関数
         // ==========================================
-
         window.showNotify = (msg, type='success') => {
             const b = document.getElementById('notificationBanner');
             const t = document.getElementById('notificationText');
@@ -422,10 +419,14 @@
             b.style.top = "20px"; setTimeout(() => { b.style.top = "-100px"; }, 3000);
         };
         
+        // ★修正: 確認ダイアログ（パスワード入力対応）
         window.showConfirmDialog = (msg, onOk, isDanger=false) => {
             const m = document.getElementById('confirmModal');
             document.getElementById('confirmMsg').innerText = msg;
             
+            // パスワード欄はデフォルト非表示
+            document.getElementById('confirmPassword').style.display = 'none';
+
             const sub = document.getElementById('confirmSubMsg');
             if(isDanger) {
                 sub.innerText = "この操作は取り消せません。"; sub.style.display = 'block';
@@ -472,8 +473,63 @@
         window.goBack = () => window.switchTab('home');
 
         // ==========================================
-        // ★コメント機能
+        // アカウント削除機能 (再認証対応版)
         // ==========================================
+        window.confirmDeleteAccount = () => {
+            // パスワード入力欄をリセット
+            const passInput = document.getElementById('confirmPassword');
+            passInput.value = "";
+            
+            // ダイアログ表示
+            window.showConfirmDialog("アカウントを完全に削除しますか？\n確認のためパスワードを入力してください", async () => {
+                const password = passInput.value;
+                if(!password) return window.showNotify("パスワードを入力してください", "error");
+
+                window.showNotify("削除処理中...", "success");
+                try {
+                    const user = auth.currentUser;
+                    const uid = user.uid;
+                    const email = user.email;
+
+                    // 1. まずパスワードで再認証を行う (これで「再ログインが必要」エラーを回避)
+                    const credential = EmailAuthProvider.credential(email, password);
+                    await reauthenticateWithCredential(user, credential);
+
+                    // 2. データ削除処理
+                    const q = query(collection(db, "posts"), where("userId", "==", uid));
+                    const snapshot = await getDocs(q);
+                    const batch = writeBatch(db);
+                    snapshot.forEach((doc) => { batch.delete(doc.ref); });
+                    await batch.commit();
+                    
+                    await deleteDoc(doc(db, "users", uid));
+                    
+                    // 3. ユーザー削除
+                    await deleteUser(user);
+
+                    window.showNotify("アカウントを削除しました");
+                    setTimeout(()=>location.reload(), 1500);
+
+                } catch(error) {
+                    console.error(error);
+                    if(error.code === 'auth/wrong-password') {
+                        window.showNotify("パスワードが間違っています", "error");
+                    } else {
+                        window.showNotify("エラー: " + error.message, "error");
+                    }
+                }
+            }, true);
+
+            // ★ここでパスワード欄を表示状態にする
+            passInput.style.display = 'block';
+            passInput.focus();
+        };
+
+        // ==========================================
+        // 以下、既存機能
+        // ==========================================
+
+        // コメント機能
         window.openCommentModal = (postId) => {
             if(!auth.currentUser) return window.openAuthModal('login');
             
@@ -572,9 +628,7 @@
             }
         };
 
-        // ==========================================
         // フィード機能
-        // ==========================================
         function loadFeed() {
             const list = document.getElementById('feedList');
             const q = query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(20));
@@ -600,7 +654,6 @@
                         timeStr = `${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
                     }
 
-                    // ★デフォルトアイコン色をダークグレー(#555)に
                     let iconHtml = post.userPhotoURL 
                         ? `<img src="${post.userPhotoURL}">` 
                         : `<i class="fas ${post.userIconClass || 'fa-user'}"></i>`;
@@ -740,9 +793,7 @@
             }, true);
         };
 
-        // ==========================================
         // プロフィール・アカウント管理
-        // ==========================================
         async function uploadToCloudinary(file, type='profile') {
             const user = auth.currentUser;
             if (!user) throw new Error("ログインしていません");
@@ -872,9 +923,6 @@
             });
         }
 
-        // ==========================================
-        // アカウント情報変更・削除・認証
-        // ==========================================
         window.showAccountSettings = () => {
             if(!auth.currentUser) return window.openAuthModal('login');
             window.switchTab('');
@@ -917,33 +965,11 @@
             });
         };
 
-        window.confirmDeleteAccount = () => {
-            window.showConfirmDialog("本当にアカウントを削除しますか？", async () => {
-                window.showNotify("削除処理中...", "success");
-                try {
-                    const user = auth.currentUser; const uid = user.uid;
-                    const q = query(collection(db, "posts"), where("userId", "==", uid));
-                    const snapshot = await getDocs(q);
-                    const batch = writeBatch(db);
-                    snapshot.forEach((doc) => { batch.delete(doc.ref); });
-                    await batch.commit();
-                    await deleteDoc(doc(db, "users", uid));
-                    await deleteUser(user);
-                    window.showNotify("削除しました"); setTimeout(()=>location.reload(), 1500);
-                } catch(error) {
-                    if(error.code === 'auth/requires-recent-login') {
-                        window.showNotify("再ログインが必要です", "error"); setTimeout(() => window.logoutExecution(), 2000);
-                    } else { window.showNotify("エラー: " + error.message, "error"); }
-                }
-            }, true);
-        };
-
         // ログイン・認証関連
         window.openAuthModal = (mode) => {
             currentAuthMode = mode; document.getElementById('authModal').style.display = 'flex';
             const isReg = mode === 'register';
             document.getElementById('nameGroup').style.display = isReg ? 'block' : 'none';
-            // ★新規登録時のみ「表示名（ニックネーム）」入力欄を表示
             document.getElementById('publicNameGroup').style.display = isReg ? 'block' : 'none';
             document.getElementById('passConfirmGroup').style.display = isReg ? 'block' : 'none';
             
@@ -958,7 +984,6 @@
             const p = document.getElementById('inputPass').value;
             const pc = document.getElementById('inputPassConfirm').value;
             const n = document.getElementById('inputName').value;
-            // ★表示名を取得
             const pn = document.getElementById('inputPublicName').value;
             
             const btn = document.getElementById('authBtn');
@@ -974,7 +999,6 @@
                 if(currentAuthMode==='register') {
                     const c = await createUserWithEmailAndPassword(auth,e,p);
                     await updateProfile(c.user, { displayName: n });
-                    // ★初期登録時に publicName と デフォルトアイコン色(#555)を保存
                     await setDoc(doc(db,"users",c.user.uid), { 
                         createdAt: new Date(),
                         publicName: pn,
@@ -988,13 +1012,11 @@
                 }
                 window.closeAuthModal();
             } catch(err) { 
-                // ★エラーメッセージの日本語化とセキュリティ対策
                 let msg = "エラーが発生しました";
                 const code = err.code;
                 if(code === 'auth/email-already-in-use') {
                     msg = "このメールアドレスは既に使用されています";
                 } else if(code === 'auth/invalid-credential' || code === 'auth/user-not-found' || code === 'auth/wrong-password') {
-                    // ★メアドかパスワードか特定させない
                     msg = "メールアドレスまたはパスワードが間違っています";
                 } else if(code === 'auth/weak-password') {
                     msg = "パスワードは6文字以上で設定してください";
@@ -1011,9 +1033,6 @@
         window.confirmLogout = () => window.showConfirmDialog("ログアウトしますか？", window.logoutExecution);
         window.logoutExecution = () => signOut(auth).then(()=>{ window.showNotify("ログアウトしました"); setTimeout(()=>location.reload(),1000); });
 
-        // ==========================================
-        // 初期化・イベントリスナー
-        // ==========================================
         window.toggleHeaderMenu = () => document.getElementById('headerMenu').classList.toggle('active');
         document.addEventListener('click', (e) => {
             const m = document.getElementById('headerMenu');
@@ -1029,7 +1048,6 @@
                 h.style.background = 'transparent';
             } else {
                 h.innerHTML = `<i class="fas ${currentUserData.iconClass||'fa-user'}"></i>`;
-                // ★デフォルト色を#555に
                 h.style.background = currentUserData.iconColor || '#555';
                 h.style.color = 'white';
             }
@@ -1052,7 +1070,6 @@
                 window.switchTab('home');
             }
         });
-
     </script>
 </body>
 </html>
