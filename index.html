@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>私の初アプリ</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; padding: 50px; background-color: #f0f0f0; }
+        button { padding: 15px 30px; font-size: 18px; cursor: pointer; background-color: #007bff; color: white; border: none; border-radius: 5px; }
+        button:hover { background-color: #0056b3; }
+        #result { margin-top: 20px; font-size: 24px; font-weight: bold; color: #333; }
+    </style>
+</head>
+<body>
+    <h1>おみくじアプリ</h1>
+    <button onclick="drawOmikuji()">おみくじを引く</button>
+    <div id="result"></div>
+
+    <script>
+        function drawOmikuji() {
+            const fortunes = ["大吉！最高の1日！", "中吉。いいことあるかも", "小吉。普通が一番", "末吉。油断禁物", "凶...。今日は大人しくしよう"];
+            const rand = Math.floor(Math.random() * fortunes.length);
+            document.getElementById("result").innerText = fortunes[rand];
+        }
+    </script>
+</body>
+</html>
