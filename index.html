@@ -70,7 +70,10 @@
         .feed-avatar { width: 45px; height: 45px; border-radius: 50%; background: #555; margin-right: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px; flex-shrink: 0; overflow: hidden;}
         .feed-avatar img { width: 100%; height: 100%; object-fit: cover; }
         .feed-info { flex: 1; }
-        .feed-name { font-weight: bold; font-size: 15px; color: #333; }
+        .feed-name { font-weight: bold; font-size: 15px; color: #333; display: flex; align-items: baseline; gap: 5px;}
+        /* ★修正: ID表示用スタイル */
+        .feed-id { font-size: 12px; color: #999; font-weight: normal; }
+        
         .feed-time { font-size: 11px; color: #999; margin-top: 2px; }
         .feed-content { font-size: 15px; line-height: 1.6; color: #444; white-space: pre-wrap; word-break: break-all; }
         .feed-image { margin-top: 15px; width: 100%; border-radius: 15px; overflow: hidden; display: none; }
@@ -173,7 +176,7 @@
             </div>
             <div class="header-icons">
                 <div id="loginArea">
-                    <a onclick="openAuthModal('login')" class="login-btn">ログイン</a>
+                    <a onclick="openAuthModal('login')" class="login-btn">ログイン/登録</a>
                 </div>
                 <div id="userArea" style="display: none;">
                     <div id="headerUserIcon" class="header-user-icon" onclick="toggleHeaderMenu()">
@@ -255,6 +258,16 @@
                 <label>公開名 (ニックネーム)</label>
                 <input type="text" id="publicName" placeholder="アプリ内で表示される名前">
             </div>
+
+            <div class="input-group">
+                <label>ユーザーID</label>
+                <div style="display:flex; align-items:center; background:#f9f9f9; border:1px solid #eee; border-radius:12px; overflow:hidden;">
+                    <span style="padding:0 10px; color:#999;">@</span>
+                    <input type="text" id="customId" placeholder="user_id" style="border:none; padding-left:0;">
+                </div>
+                <div style="font-size:11px; color:#999; margin-top:5px;">※IDは公開されます</div>
+            </div>
+
             <button id="saveProfileDataBtn" class="save-btn" onclick="savePublicProfile()" disabled>変更を保存する</button>
         </div>
     </div>
@@ -266,10 +279,7 @@
         </div>
         <div class="settings-card">
             <div style="font-size:18px; font-weight:bold; margin-bottom:20px; color:#3498db; border-bottom:2px solid #f0f0f0; padding-bottom:10px;">アカウント設定</div>
-            <div class="input-group">
-                <label>お名前 (本名)</label>
-                <input type="text" id="editName">
-            </div>
+            
             <div class="input-group">
                 <label>メールアドレス</label>
                 <input type="email" id="editEmail">
@@ -292,11 +302,16 @@
     <div id="authModal" class="modal-overlay">
         <div class="center-card">
             <h2 id="modalTitle">ログイン</h2>
-            <div class="input-group" id="nameGroup" style="display:none;">
-                <label>お名前 (本名)</label>
-                <input type="text" id="inputName" placeholder="例：山田太郎">
-                <div style="font-size:10px; color:#999; margin-top:3px;">※本名は公開されません</div>
+            
+            <div class="input-group" id="idGroup" style="display:none;">
+                <label>ユーザーID</label>
+                <div style="display:flex; align-items:center; background:#f9f9f9; border:1px solid #eee; border-radius:12px; overflow:hidden;">
+                    <span style="padding:0 10px; color:#999;">@</span>
+                    <input type="text" id="inputId" placeholder="user_id" style="border:none; padding-left:0;">
+                </div>
+                <div style="font-size:10px; color:#999; margin-top:3px;">※@〜として公開されます</div>
             </div>
+
             <div class="input-group" id="publicNameGroup" style="display:none;">
                 <label>表示名 (ニックネーム)</label>
                 <input type="text" id="inputPublicName" placeholder="アプリ内で表示される名前">
@@ -316,7 +331,9 @@
                 <input type="password" id="inputPassConfirm">
             </div>
             <button class="save-btn" id="authBtn" onclick="handleAuth()">決定</button>
-            <div class="switch-link" id="switchText" onclick="toggleMode()">登録はこちら</div>
+            
+            <div class="switch-link" id="switchText" onclick="toggleMode()"><b>登録はこちら</b></div>
+            
             <div class="switch-link" onclick="closeAuthModal()">閉じる</div>
         </div>
     </div>
@@ -366,15 +383,11 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        // ★修正: reauthenticateWithCredential と EmailAuthProvider をインポートに追加
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateEmail, updatePassword, updateProfile, deleteUser, reauthenticateWithCredential, EmailAuthProvider } 
             from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc, collection, addDoc, query, where, getDocs, orderBy, limit, onSnapshot, serverTimestamp, writeBatch, arrayUnion, arrayRemove, increment } 
             from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // ==========================================
-        // 設定定数 (Cloudinary & Firebase)
-        // ==========================================
         const CLOUDINARY_CLOUD_NAME = "dvfkc6l0d";
         const CLOUDINARY_UPLOAD_PRESET = "Nd8oj7zj";
 
@@ -391,9 +404,6 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // ==========================================
-        // グローバル変数
-        // ==========================================
         let currentAuthMode = 'login';
         let currentUserData = null; 
         let tempIconData = { color: '#555', icon: 'fa-user', imageUrl: null };
@@ -407,9 +417,6 @@
         const colors = ['#555', '#e74c3c', '#e67e22', '#f1c40f', '#2ecc71', '#3498db', '#9b59b6', '#95a5a6'];
         const icons = ['fa-user', 'fa-smile', 'fa-robot', 'fa-cat', 'fa-dog', 'fa-fish', 'fa-rocket', 'fa-star'];
 
-        // ==========================================
-        // 共通ユーティリティ関数
-        // ==========================================
         window.showNotify = (msg, type='success') => {
             const b = document.getElementById('notificationBanner');
             const t = document.getElementById('notificationText');
@@ -419,12 +426,10 @@
             b.style.top = "20px"; setTimeout(() => { b.style.top = "-100px"; }, 3000);
         };
         
-        // ★修正: 確認ダイアログ（パスワード入力対応）
         window.showConfirmDialog = (msg, onOk, isDanger=false) => {
             const m = document.getElementById('confirmModal');
             document.getElementById('confirmMsg').innerText = msg;
             
-            // パスワード欄はデフォルト非表示
             document.getElementById('confirmPassword').style.display = 'none';
 
             const sub = document.getElementById('confirmSubMsg');
@@ -452,9 +457,6 @@
             return unsafe.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
 
-        // ==========================================
-        // 画面遷移・ナビゲーション制御
-        // ==========================================
         window.switchTab = (tab) => {
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
             if(tab === 'home') document.getElementById('navHome').classList.add('active');
@@ -472,15 +474,10 @@
         };
         window.goBack = () => window.switchTab('home');
 
-        // ==========================================
-        // アカウント削除機能 (再認証対応版)
-        // ==========================================
         window.confirmDeleteAccount = () => {
-            // パスワード入力欄をリセット
             const passInput = document.getElementById('confirmPassword');
             passInput.value = "";
             
-            // ダイアログ表示
             window.showConfirmDialog("アカウントを完全に削除しますか？\n確認のためパスワードを入力してください", async () => {
                 const password = passInput.value;
                 if(!password) return window.showNotify("パスワードを入力してください", "error");
@@ -491,11 +488,9 @@
                     const uid = user.uid;
                     const email = user.email;
 
-                    // 1. まずパスワードで再認証を行う (これで「再ログインが必要」エラーを回避)
                     const credential = EmailAuthProvider.credential(email, password);
                     await reauthenticateWithCredential(user, credential);
 
-                    // 2. データ削除処理
                     const q = query(collection(db, "posts"), where("userId", "==", uid));
                     const snapshot = await getDocs(q);
                     const batch = writeBatch(db);
@@ -503,8 +498,6 @@
                     await batch.commit();
                     
                     await deleteDoc(doc(db, "users", uid));
-                    
-                    // 3. ユーザー削除
                     await deleteUser(user);
 
                     window.showNotify("アカウントを削除しました");
@@ -520,16 +513,10 @@
                 }
             }, true);
 
-            // ★ここでパスワード欄を表示状態にする
             passInput.style.display = 'block';
             passInput.focus();
         };
 
-        // ==========================================
-        // 以下、既存機能
-        // ==========================================
-
-        // コメント機能
         window.openCommentModal = (postId) => {
             if(!auth.currentUser) return window.openAuthModal('login');
             
@@ -628,7 +615,6 @@
             }
         };
 
-        // フィード機能
         function loadFeed() {
             const list = document.getElementById('feedList');
             const q = query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(20));
@@ -670,13 +656,19 @@
                     const likeActionClass = isLiked ? "action-item liked" : "action-item";
                     const likeCount = post.likes || 0;
                     const commentCount = post.commentCount || 0;
+                    
+                    // ★修正: ID表示 (@customId) を追加
+                    const idDisplay = post.customId ? `<span class="feed-id">@${escapeHtml(post.customId)}</span>` : '';
 
                     el.innerHTML = `
                         ${deleteBtnHtml}
                         <div class="feed-header">
                             <div class="feed-avatar" style="${bgStyle}">${iconHtml}</div>
                             <div class="feed-info">
-                                <div class="feed-name">${escapeHtml(post.userName)}</div>
+                                <div class="feed-name">
+                                    ${escapeHtml(post.userName)}
+                                    ${idDisplay}
+                                </div>
                                 <div class="feed-time">${timeStr}</div>
                             </div>
                         </div>
@@ -738,10 +730,13 @@
 
                 const user = currentUserData;
                 const userName = user.publicName || "名無しさん";
+                // ★修正: 投稿時にcustomIdも含める
+                const customId = user.customId || "";
 
                 await addDoc(collection(db, "posts"), {
                     userId: auth.currentUser.uid,
                     userName: userName,
+                    customId: customId, // ID保存
                     userIconColor: user.iconColor || '#555',
                     userIconClass: user.iconClass || 'fa-user',
                     userPhotoURL: user.photoURL || null,
@@ -793,7 +788,6 @@
             }, true);
         };
 
-        // プロフィール・アカウント管理
         async function uploadToCloudinary(file, type='profile') {
             const user = auth.currentUser;
             if (!user) throw new Error("ログインしていません");
@@ -820,6 +814,9 @@
             document.getElementById('profileScreen').style.display = 'block';
             
             document.getElementById('publicName').value = currentUserData.publicName || "";
+            // ★修正: ID編集欄に値をセット
+            document.getElementById('customId').value = currentUserData.customId || "";
+            
             tempIconData = { 
                 color: currentUserData.iconColor || '#555', 
                 icon: currentUserData.iconClass || 'fa-user', 
@@ -834,15 +831,20 @@
 
         function checkProfileChanges() {
             const nameChanged = document.getElementById('publicName').value !== (currentUserData.publicName || "");
+            // ★修正: ID変更検知
+            const idChanged = document.getElementById('customId').value !== (currentUserData.customId || "");
+            
             const iconChanged = (tempIconData.color !== (currentUserData.iconColor||'#555')) || (tempIconData.icon !== (currentUserData.iconClass||'fa-user'));
             const imgChanged = !!selectedFile || (currentUserData.photoURL && !tempIconData.imageUrl);
-            document.getElementById('saveProfileDataBtn').disabled = !(nameChanged || iconChanged || imgChanged);
+            document.getElementById('saveProfileDataBtn').disabled = !(nameChanged || idChanged || iconChanged || imgChanged);
         }
         document.getElementById('publicName').oninput = checkProfileChanges;
+        document.getElementById('customId').oninput = checkProfileChanges;
 
         window.savePublicProfile = async () => {
             window.showConfirmDialog("変更を保存しますか？", async () => {
                 const newName = document.getElementById('publicName').value;
+                const newId = document.getElementById('customId').value;
                 window.showNotify("保存中...", "success");
                 
                 try {
@@ -852,6 +854,7 @@
 
                     const updateData = {
                         publicName: newName,
+                        customId: newId,
                         iconColor: tempIconData.color,
                         iconClass: tempIconData.icon,
                         photoURL: finalUrl
@@ -930,22 +933,22 @@
             document.getElementById('homeScreen').style.display = 'none';
             document.getElementById('accountSettingsScreen').style.display = 'block';
             
-            document.getElementById('editName').value = auth.currentUser.displayName || "";
+            // ★修正: 本名欄を削除したのでセット処理も削除
             document.getElementById('editEmail').value = auth.currentUser.email || "";
             document.getElementById('editPass').value = ""; document.getElementById('editPassConfirm').value = "";
             checkAccountChanges();
         };
 
         function checkAccountChanges() {
-            const n = document.getElementById('editName').value !== (auth.currentUser.displayName || "");
+            // ★修正: 本名チェック削除
             const e = document.getElementById('editEmail').value !== auth.currentUser.email;
             const p = document.getElementById('editPass').value.length > 0;
-            document.getElementById('saveAccountBtn').disabled = !(n || e || p);
+            document.getElementById('saveAccountBtn').disabled = !(e || p);
         }
-        ['editName','editEmail','editPass'].forEach(id => document.getElementById(id).oninput = checkAccountChanges);
+        ['editEmail','editPass'].forEach(id => document.getElementById(id).oninput = checkAccountChanges);
 
         window.updateAccountInfo = async () => {
-            const n = document.getElementById('editName').value;
+            // ★修正: 本名取得削除
             const e = document.getElementById('editEmail').value;
             const p = document.getElementById('editPass').value;
             const pc = document.getElementById('editPassConfirm').value;
@@ -954,7 +957,7 @@
             window.showConfirmDialog("変更を保存しますか？", async () => {
                 try {
                     const u = auth.currentUser;
-                    if(n !== u.displayName) await updateProfile(u, { displayName: n });
+                    // ★修正: 本名更新削除
                     if(e !== u.email) await updateEmail(u,e);
                     if(p) await updatePassword(u,p);
                     updateHeader(); window.showNotify("更新しました"); window.goBack();
@@ -965,16 +968,18 @@
             });
         };
 
-        // ログイン・認証関連
         window.openAuthModal = (mode) => {
             currentAuthMode = mode; document.getElementById('authModal').style.display = 'flex';
             const isReg = mode === 'register';
-            document.getElementById('nameGroup').style.display = isReg ? 'block' : 'none';
+            document.getElementById('nameGroup').style.display = 'none'; // 本名欄非表示
+            // ★修正: 新規登録時はID入力欄を表示
+            document.getElementById('idGroup').style.display = isReg ? 'block' : 'none';
             document.getElementById('publicNameGroup').style.display = isReg ? 'block' : 'none';
             document.getElementById('passConfirmGroup').style.display = isReg ? 'block' : 'none';
             
             document.getElementById('modalTitle').innerText = isReg ? "新規登録" : "ログイン";
-            document.getElementById('switchText').innerText = isReg ? "ログインへ戻る" : "登録はこちら";
+            // ★修正: 「登録はこちら」はCSSで太字に
+            document.getElementById('switchText').innerHTML = isReg ? "ログインへ戻る" : "<b>登録はこちら</b>";
         };
         window.closeAuthModal = () => document.getElementById('authModal').style.display = 'none';
         window.toggleMode = () => window.openAuthModal(currentAuthMode==='login'?'register':'login');
@@ -983,13 +988,14 @@
             const e = document.getElementById('inputEmail').value;
             const p = document.getElementById('inputPass').value;
             const pc = document.getElementById('inputPassConfirm').value;
-            const n = document.getElementById('inputName').value;
+            // ★修正: ID取得
+            const customId = document.getElementById('inputId').value;
             const pn = document.getElementById('inputPublicName').value;
             
             const btn = document.getElementById('authBtn');
             if(!e || !p) return window.showNotify("入力してください","error");
             if(currentAuthMode==='register') {
-                if(!n) return window.showNotify("お名前(本名)を入力してください","error");
+                if(!customId) return window.showNotify("ユーザーIDを入力してください","error");
                 if(!pn) return window.showNotify("表示名(ニックネーム)を入力してください","error");
                 if(p!==pc || p.length<6) return window.showNotify("パスワード不備","error");
             }
@@ -998,10 +1004,11 @@
             try {
                 if(currentAuthMode==='register') {
                     const c = await createUserWithEmailAndPassword(auth,e,p);
-                    await updateProfile(c.user, { displayName: n });
+                    // updateProfile(displayName) は使わずFirestoreのみで管理
                     await setDoc(doc(db,"users",c.user.uid), { 
                         createdAt: new Date(),
                         publicName: pn,
+                        customId: customId, // ID保存
                         iconColor: '#555',
                         iconClass: 'fa-user'
                     });
@@ -1051,7 +1058,7 @@
                 h.style.background = currentUserData.iconColor || '#555';
                 h.style.color = 'white';
             }
-            const name = auth.currentUser.displayName || currentUserData.publicName || "ゲスト";
+            const name = currentUserData.publicName || "ゲスト";
             document.getElementById('greetingText').innerHTML = `こんにちは、<br>${name}様`;
         }
 
