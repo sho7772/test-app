@@ -12,7 +12,7 @@
             background-color: #f5f7fa;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             color: #333;
-            padding-bottom: 80px;
+            padding-bottom: 80px; /* 下部メニュー用 */
         }
 
         /* --- ヘッダー --- */
@@ -25,7 +25,6 @@
         .greeting h1 { margin: 0; font-size: 24px; font-weight: bold; }
         .date { font-size: 14px; color: #666; margin-top: 5px; }
         
-        /* ログインボタンのデザイン */
         .login-btn {
             background-color: #3498db; color: white;
             padding: 10px 20px; border-radius: 20px;
@@ -42,7 +41,7 @@
             cursor: pointer;
         }
 
-        /* --- メインコンテンツ --- */
+        /* --- メインコンテンツ（ホーム画面） --- */
         .weather-card {
             margin: 0 20px;
             background: linear-gradient(135deg, #2ecc71, #3498db);
@@ -50,92 +49,157 @@
             box-shadow: 0 10px 20px rgba(46, 204, 113, 0.3);
         }
         .temp { font-size: 48px; font-weight: bold; margin: 10px 0; }
+        .location { font-size: 14px; opacity: 0.9; }
 
         .utility-grid { display: flex; gap: 15px; padding: 20px; }
         .utility-card {
             flex: 1; background: white; padding: 15px;
             border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.03);
-            text-align: center;
+            text-align: center; cursor: pointer;
+            transition: transform 0.1s;
+        }
+        .utility-card:active { transform: scale(0.98); }
+
+        /* --- マイページ画面（デザイン統一） --- */
+        #mypageScreen {
+            display: none; /* 最初は隠す */
+            padding: 20px;
+            animation: fadeIn 0.3s ease;
+        }
+        .mypage-header {
+            display: flex; align-items: center; margin-bottom: 20px;
+        }
+        .back-btn {
+            font-size: 24px; color: #555; margin-right: 15px; cursor: pointer;
+        }
+        .settings-card {
+            background: white; padding: 25px; border-radius: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        .section-label {
+            font-size: 18px; font-weight: bold; margin-bottom: 20px;
+            color: #3498db; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px;
         }
 
-        /* --- ログイン/登録モーダル（ポップアップ） --- */
+        /* 入力フォーム共通 */
+        .input-group { margin-bottom: 20px; text-align: left; }
+        .input-group label { display: block; font-size: 13px; color: #666; margin-bottom: 8px; font-weight: bold; }
+        .input-group input {
+            width: 100%; padding: 14px; border: 1px solid #eee; background: #f9f9f9;
+            border-radius: 12px; box-sizing: border-box; font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        .input-group input:focus { border-color: #3498db; outline: none; background: white; }
+        
+        .save-btn {
+            width: 100%; padding: 15px; background: linear-gradient(135deg, #2ecc71, #3498db);
+            color: white; border: none; border-radius: 12px;
+            font-size: 16px; font-weight: bold; cursor: pointer;
+            box-shadow: 0 5px 15px rgba(46, 204, 113, 0.3);
+        }
+        .logout-btn-area { margin-top: 30px; text-align: center; }
+        .danger-btn {
+            color: #e74c3c; background: none; border: 1px solid #e74c3c;
+            padding: 10px 20px; border-radius: 20px; cursor: pointer; font-weight: bold;
+        }
+
+        /* --- モーダル --- */
         #authModal {
-            display: none; /* 最初は隠す */
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); z-index: 1000;
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 2000;
             justify-content: center; align-items: center;
         }
         .auth-card {
             background: white; width: 85%; max-width: 350px;
-            padding: 30px; border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            text-align: center;
+            padding: 30px; border-radius: 20px; text-align: center;
         }
-        .input-group { margin-bottom: 15px; text-align: left; }
-        .input-group label { display: block; font-size: 12px; color: #666; margin-bottom: 5px; }
-        .input-group input {
-            width: 100%; padding: 12px; border: 1px solid #ddd;
-            border-radius: 10px; box-sizing: border-box; font-size: 16px;
-        }
-        .submit-btn {
-            width: 100%; padding: 12px; background: #3498db;
-            color: white; border: none; border-radius: 10px;
-            font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px;
-        }
-        .submit-btn:disabled { background: #ccc; cursor: not-allowed; }
-        .switch-link {
-            margin-top: 15px; font-size: 12px; color: #666; cursor: pointer; text-decoration: underline;
-        }
+        .switch-link { margin-top: 15px; font-size: 12px; color: #666; cursor: pointer; text-decoration: underline; }
 
         /* --- 下部メニュー --- */
         .bottom-nav {
-            position: fixed; bottom: 0; left: 0; width: 100%;
+            position: fixed; bottom: 0; left: 0; width: 100%; z-index: 100;
             background: white; display: flex; justify-content: space-around;
             padding: 15px 0; border-top: 1px solid #eee;
         }
-        .nav-item { text-align: center; color: #ccc; font-size: 10px; }
+        .nav-item { text-align: center; color: #ccc; font-size: 10px; cursor: pointer;}
         .nav-item.active { color: #2ecc71; }
         .nav-item i { font-size: 20px; display: block; margin-bottom: 5px; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <div class="greeting">
-            <h1 id="greetingText">ようこそ<br>ゲスト様</h1>
-            <div class="date">1月28日(水)</div>
-        </div>
-        <div class="header-icons">
-            <div id="loginArea">
-                <a onclick="openModal('login')" class="login-btn">ログイン</a>
+    <div id="homeScreen">
+        <div class="header">
+            <div class="greeting">
+                <h1 id="greetingText">ようこそ<br>ゲスト様</h1>
+                <div class="date">1月28日(水)</div>
             </div>
-            <div id="userArea" style="display: none;">
-                <i class="fas fa-user-circle" onclick="logout()"></i>
+            <div class="header-icons">
+                <div id="loginArea">
+                    <a onclick="openAuthModal('login')" class="login-btn">ログイン</a>
+                </div>
+                <div id="userArea" style="display: none;">
+                    <i class="fas fa-user-circle" onclick="showMypage()"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="weather-card">
+            <div>1月28日(水)</div>
+            <div class="temp"><i class="fas fa-sun"></i> 15°C</div>
+            <div class="location">現在地: 東京都調布市</div>
+        </div>
+
+        <div class="utility-grid">
+            <div class="utility-card">
+                <i class="fas fa-trash-alt" style="color: #95a5a6;"></i>
+                <div style="font-size:12px; font-weight:bold; color:#555;">ごみ収集</div>
+                <div style="font-size:10px; color:#999;">なし</div>
+            </div>
+            <div class="utility-card" onclick="showMypage()">
+                <i class="fas fa-user-cog" style="color: #e67e22;"></i>
+                <div style="font-size:12px; font-weight:bold; color:#555;">マイページ</div>
+                <div style="font-size:10px; color:#999;">設定変更</div>
             </div>
         </div>
     </div>
 
-    <div class="weather-card">
-        <div>1月28日(水)</div>
-        <div class="temp"><i class="fas fa-sun"></i> 15°C</div>
-        <div class="location">現在地: 東京都調布市</div>
-    </div>
-
-    <div class="utility-grid">
-        <div class="utility-card">
-            <i class="fas fa-trash-alt" style="color: #95a5a6;"></i>
-            <div class="utility-title">ごみ収集</div>
-            <div class="utility-desc">なし</div>
+    <div id="mypageScreen">
+        <div class="mypage-header">
+            <i class="fas fa-arrow-left back-btn" onclick="showHome()"></i>
+            <h1 style="margin:0; font-size:22px;">登録情報の変更</h1>
         </div>
-        <div class="utility-card">
-            <i class="fas fa-database" style="color: #e67e22;"></i>
-            <div class="utility-title">データ</div>
-            <div class="utility-desc">確認する</div>
+
+        <div class="settings-card">
+            <div class="section-label">基本設定</div>
+            
+            <div class="input-group">
+                <label>お名前</label>
+                <input type="text" id="editName" placeholder="新しい名前">
+            </div>
+
+            <div class="input-group">
+                <label>メールアドレス</label>
+                <input type="email" id="editEmail" placeholder="新しいメールアドレス">
+            </div>
+
+            <div class="input-group">
+                <label>パスワード変更 (必要な場合のみ)</label>
+                <input type="password" id="editPass" placeholder="新しいパスワード (6文字以上)">
+            </div>
+
+            <button class="save-btn" onclick="updateProfile()">変更を保存する</button>
+
+            <div class="logout-btn-area">
+                <button class="danger-btn" onclick="logout()">ログアウト</button>
+            </div>
         </div>
     </div>
 
     <div class="bottom-nav">
-        <div class="nav-item active"><i class="fas fa-home"></i>ホーム</div>
+        <div class="nav-item active" onclick="showHome()"><i class="fas fa-home"></i>ホーム</div>
         <div class="nav-item"><i class="fas fa-list-alt"></i>フィード</div>
         <div class="nav-item"><i class="fas fa-robot"></i>AI</div>
     </div>
@@ -143,36 +207,32 @@
     <div id="authModal">
         <div class="auth-card">
             <h2 id="modalTitle">ログイン</h2>
-            
             <div class="input-group" id="nameGroup" style="display:none;">
                 <label>お名前</label>
-                <input type="text" id="inputName" placeholder="例：つばさ">
+                <input type="text" id="inputName" placeholder="例：山田太郎">
             </div>
-
             <div class="input-group">
                 <label>メールアドレス</label>
                 <input type="email" id="inputEmail" placeholder="sample@gmail.com">
             </div>
             <div class="input-group">
                 <label>パスワード</label>
-                <input type="password" id="inputPass" placeholder="6文字以上">
+                <input type="password" id="inputPass" placeholder="••••••••">
             </div>
-
-            <button class="submit-btn" id="submitBtn" onclick="handleAuth()">決定</button>
+            <button class="save-btn" style="padding:12px;" id="authBtn" onclick="handleAuth()">決定</button>
             <div class="switch-link" id="switchText" onclick="toggleMode()">アカウントをお持ちでない方は登録</div>
-            <div class="switch-link" onclick="closeModal()">閉じる</div>
+            <div class="switch-link" onclick="closeAuthModal()">閉じる</div>
         </div>
     </div>
 
     <script type="module">
-        // あなたのプロジェクト設定（CDN経由で読み込み）
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } 
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateEmail, updatePassword } 
             from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc } 
+        import { getFirestore, doc, setDoc, getDoc, updateDoc } 
             from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // いただいた設定情報
+        // 設定情報
         const firebaseConfig = {
           apiKey: "AIzaSyBzGdWG07Y_5SFmC4HOD3tde78F9HutSiI",
           authDomain: "test-app-371a4.firebaseapp.com",
@@ -182,120 +242,165 @@
           appId: "1:253478820619:web:981b0b0f252a0953e3a00e"
         };
 
-        // Firebaseを開始
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        let currentMode = 'login';
+        let currentAuthMode = 'login';
+        let currentUserData = null; // ユーザー情報を一時保存
 
-        // --- 画面操作のための関数を準備（重要） ---
-        // モジュール（type="module"）の中の関数は外から見えないので、わざと見えるようにしています
-        window.openModal = (mode) => {
-            currentMode = mode;
-            document.getElementById('authModal').style.display = 'flex';
-            if (mode === 'register') {
-                document.getElementById('nameGroup').style.display = 'block';
-                document.getElementById('modalTitle').innerText = "新規登録";
-                document.getElementById('switchText').innerText = "すでにアカウントをお持ちの方はログイン";
-            } else {
-                document.getElementById('nameGroup').style.display = 'none';
-                document.getElementById('modalTitle').innerText = "ログイン";
-                document.getElementById('switchText').innerText = "アカウントをお持ちでない方は登録";
+        // --- 画面切り替え ---
+        window.showMypage = () => {
+            if (!auth.currentUser) {
+                alert("ログインしてください");
+                window.openAuthModal('login');
+                return;
+            }
+            // 画面切り替え
+            document.getElementById('homeScreen').style.display = 'none';
+            document.getElementById('mypageScreen').style.display = 'block';
+            
+            // 今の情報をフォームに入れる
+            if (currentUserData) {
+                document.getElementById('editName').value = currentUserData.name || "";
+            }
+            document.getElementById('editEmail').value = auth.currentUser.email || "";
+            document.getElementById('editPass').value = ""; // パスワードは空欄にしておく
+        };
+
+        window.showHome = () => {
+            document.getElementById('homeScreen').style.display = 'block';
+            document.getElementById('mypageScreen').style.display = 'none';
+        };
+
+        // --- プロフィール更新処理 ---
+        window.updateProfile = async () => {
+            const newName = document.getElementById('editName').value;
+            const newEmail = document.getElementById('editEmail').value;
+            const newPass = document.getElementById('editPass').value;
+            const user = auth.currentUser;
+
+            if (!user) return;
+
+            if(!confirm("変更を保存しますか？")) return;
+
+            try {
+                // 1. 名前の更新 (データベース)
+                if (newName && newName !== currentUserData.name) {
+                    await updateDoc(doc(db, "users", user.uid), { name: newName });
+                    currentUserData.name = newName; // 画面表示用データも更新
+                    document.getElementById('greetingText').innerHTML = `こんにちは、<br>${newName}様`;
+                }
+
+                // 2. メアドの更新
+                if (newEmail && newEmail !== user.email) {
+                    await updateEmail(user, newEmail);
+                }
+
+                // 3. パスワードの更新
+                if (newPass) {
+                    await updatePassword(user, newPass);
+                }
+
+                alert("情報を更新しました！");
+                window.showHome();
+
+            } catch (error) {
+                console.error(error);
+                if (error.code === 'auth/requires-recent-login') {
+                    alert("セキュリティのため、もう一度ログインし直してから変更してください。");
+                    window.logout();
+                } else {
+                    alert("エラー: " + error.message);
+                }
             }
         };
 
-        window.closeModal = () => {
-            document.getElementById('authModal').style.display = 'none';
+        // --- 認証まわり（前回と同じ） ---
+        window.openAuthModal = (mode) => {
+            currentAuthMode = mode;
+            document.getElementById('authModal').style.display = 'flex';
+            const title = document.getElementById('modalTitle');
+            const switchText = document.getElementById('switchText');
+            const nameGroup = document.getElementById('nameGroup');
+
+            if (mode === 'register') {
+                nameGroup.style.display = 'block';
+                title.innerText = "新規登録";
+                switchText.innerText = "ログインへ戻る";
+            } else {
+                nameGroup.style.display = 'none';
+                title.innerText = "ログイン";
+                switchText.innerText = "アカウントをお持ちでない方は登録";
+            }
         };
 
-        window.toggleMode = () => {
-            window.openModal(currentMode === 'login' ? 'register' : 'login');
-        };
+        window.closeAuthModal = () => document.getElementById('authModal').style.display = 'none';
+        
+        window.toggleMode = () => window.openAuthModal(currentAuthMode === 'login' ? 'register' : 'login');
 
         window.logout = () => {
             if(confirm("ログアウトしますか？")) {
                 signOut(auth).then(() => {
                     alert("ログアウトしました");
-                }).catch((error) => {
-                    alert("エラー: " + error.message);
+                    window.location.reload(); // 画面リセット
                 });
             }
         };
 
-        // --- 認証・登録のメイン処理 ---
         window.handleAuth = async () => {
             const email = document.getElementById('inputEmail').value;
             const pass = document.getElementById('inputPass').value;
             const name = document.getElementById('inputName').value;
-            const btn = document.getElementById('submitBtn');
+            const btn = document.getElementById('authBtn');
 
             if (!email || !pass) { alert("入力してください"); return; }
-            btn.disabled = true; // 連打防止
-            btn.innerText = "処理中...";
+            btn.disabled = true; btn.innerText = "処理中...";
 
             try {
-                if (currentMode === 'register') {
-                    // 新規登録処理
+                if (currentAuthMode === 'register') {
                     if (!name) throw new Error("お名前を入力してください");
-                    
-                    // 1. ユーザー作成
-                    const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
-                    const user = userCredential.user;
-
-                    // 2. データベース(Firestore)に名前を保存
-                    await setDoc(doc(db, "users", user.uid), {
-                        name: name,
-                        email: email,
-                        createdAt: new Date()
+                    const cred = await createUserWithEmailAndPassword(auth, email, pass);
+                    await setDoc(doc(db, "users", cred.user.uid), {
+                        name: name, email: email, createdAt: new Date()
                     });
-
-                    alert("登録成功！ようこそ " + name + " さん");
-                    window.closeModal();
-
+                    alert("登録成功！");
+                    window.closeAuthModal();
                 } else {
-                    // ログイン処理
                     await signInWithEmailAndPassword(auth, email, pass);
-                    alert("ログインしました！");
-                    window.closeModal();
+                    alert("ログイン成功！");
+                    window.closeAuthModal();
                 }
             } catch (error) {
-                console.error(error);
-                let msg = "エラーが発生しました";
-                if (error.code === 'auth/email-already-in-use') msg = "このメールアドレスは既に登録されています";
-                if (error.code === 'auth/wrong-password') msg = "パスワードが違います";
-                if (error.code === 'auth/user-not-found') msg = "ユーザーが見つかりません";
-                if (error.code === 'auth/weak-password') msg = "パスワードは6文字以上にしてください";
-                alert(msg);
+                alert("エラー: " + error.message);
             } finally {
-                btn.disabled = false;
-                btn.innerText = "決定";
+                btn.disabled = false; btn.innerText = "決定";
             }
         };
 
-        // --- ログイン状態を監視する ---
-        // ページを開いた時や、ログイン/ログアウトした時に自動で動きます
+        // --- ログイン監視 ---
         onAuthStateChanged(auth, async (user) => {
             const greeting = document.getElementById('greetingText');
             const loginArea = document.getElementById('loginArea');
             const userArea = document.getElementById('userArea');
 
             if (user) {
-                // ログイン中なら、DBから名前を取得して表示
+                // DBから名前取得
                 const userDoc = await getDoc(doc(db, "users", user.uid));
-                let userName = "メンバー";
                 if (userDoc.exists()) {
-                    userName = userDoc.data().name;
+                    currentUserData = userDoc.data();
+                    greeting.innerHTML = `こんにちは、<br>${currentUserData.name}様`;
                 }
-                
-                greeting.innerHTML = `こんにちは、<br>${userName}様`;
                 loginArea.style.display = 'none';
                 userArea.style.display = 'block';
             } else {
-                // 未ログイン
+                currentUserData = null;
                 greeting.innerHTML = `ようこそ<br>ゲスト様`;
                 loginArea.style.display = 'block';
                 userArea.style.display = 'none';
+                // ログアウト状態でマイページにいたらホームに戻す
+                document.getElementById('mypageScreen').style.display = 'none';
+                document.getElementById('homeScreen').style.display = 'block';
             }
         });
     </script>
