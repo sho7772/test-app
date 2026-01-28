@@ -41,6 +41,7 @@ export function loadFeed() {
             const likeActionClass = isLiked ? "action-item liked" : "action-item";
             const idDisplay = post.customId ? `<span class="feed-id">@${escapeHtml(post.customId)}</span>` : '';
 
+            // ★変更点: 画像クリック時に openImageModal を呼ぶ
             el.innerHTML = `
                 ${deleteBtnHtml}
                 <div class="feed-header">
@@ -51,7 +52,7 @@ export function loadFeed() {
                     </div>
                 </div>
                 <div class="feed-content">${escapeHtml(post.text)}</div>
-                ${post.imageUrl ? `<div class="feed-image" style="display:block;"><img src="${post.imageUrl}"></div>` : ''}
+                ${post.imageUrl ? `<div class="feed-image" style="display:block;"><img src="${post.imageUrl}" onclick="event.stopPropagation(); openImageModal('${post.imageUrl}')"></div>` : ''}
                 <div class="feed-actions">
                     <div class="${likeActionClass}" onclick="toggleLike('${postId}')">
                         <i class="${heartClass}"></i> ${post.likes || 0 > 0 ? post.likes : 'いいね'}
@@ -66,7 +67,6 @@ export function loadFeed() {
     });
 }
 
-// グローバル関数への紐付け
 window._loadFeed = loadFeed;
 window.openPostModal = () => {
     if(!auth.currentUser) return window.openAuthModal('login');
@@ -104,7 +104,7 @@ window.submitPost = async () => {
     try {
         let imageUrl = null;
         if(selectedPostFile) imageUrl = await uploadToCloudinary(selectedPostFile, 'post');
-        const user = window.currentUserData; // app.jsで管理
+        const user = window.currentUserData; 
         await addDoc(collection(db, "posts"), {
             userId: auth.currentUser.uid, userName: user.publicName || "名無しさん", customId: user.customId || "",
             userIconColor: user.iconColor || '#555', userIconClass: user.iconClass || 'fa-user', userPhotoURL: user.photoURL || null,
