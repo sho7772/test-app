@@ -12,15 +12,13 @@
             background-color: #f5f7fa;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             color: #333;
-            padding-bottom: 80px; /* 下部メニュー用 */
+            padding-bottom: 80px;
         }
 
         /* --- ヘッダー --- */
         .header {
             padding: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            display: flex; justify-content: space-between; align-items: center;
         }
         .greeting h1 { margin: 0; font-size: 24px; font-weight: bold; }
         .date { font-size: 14px; color: #666; margin-top: 5px; }
@@ -30,18 +28,15 @@
             padding: 10px 20px; border-radius: 20px;
             font-size: 14px; font-weight: bold;
             text-decoration: none; display: inline-block;
-            box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3);
-            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3); cursor: pointer;
         }
         .header-icons i {
-            font-size: 20px; margin-left: 15px;
-            color: #555; background: #fff;
+            font-size: 20px; margin-left: 15px; color: #555; background: #fff;
             padding: 10px; border-radius: 50%;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05); cursor: pointer;
         }
 
-        /* --- メインコンテンツ（ホーム画面） --- */
+        /* --- メインコンテンツ --- */
         .weather-card {
             margin: 0 20px;
             background: linear-gradient(135deg, #2ecc71, #3498db);
@@ -49,29 +44,19 @@
             box-shadow: 0 10px 20px rgba(46, 204, 113, 0.3);
         }
         .temp { font-size: 48px; font-weight: bold; margin: 10px 0; }
-        .location { font-size: 14px; opacity: 0.9; }
 
         .utility-grid { display: flex; gap: 15px; padding: 20px; }
         .utility-card {
             flex: 1; background: white; padding: 15px;
             border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.03);
-            text-align: center; cursor: pointer;
-            transition: transform 0.1s;
+            text-align: center; cursor: pointer; transition: transform 0.1s;
         }
         .utility-card:active { transform: scale(0.98); }
 
-        /* --- マイページ画面（デザイン統一） --- */
-        #mypageScreen {
-            display: none; /* 最初は隠す */
-            padding: 20px;
-            animation: fadeIn 0.3s ease;
-        }
-        .mypage-header {
-            display: flex; align-items: center; margin-bottom: 20px;
-        }
-        .back-btn {
-            font-size: 24px; color: #555; margin-right: 15px; cursor: pointer;
-        }
+        /* --- マイページ --- */
+        #mypageScreen { display: none; padding: 20px; animation: fadeIn 0.3s ease; }
+        .mypage-header { display: flex; align-items: center; margin-bottom: 20px; }
+        .back-btn { font-size: 24px; color: #555; margin-right: 15px; cursor: pointer; }
         .settings-card {
             background: white; padding: 25px; border-radius: 20px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.05);
@@ -80,8 +65,6 @@
             font-size: 18px; font-weight: bold; margin-bottom: 20px;
             color: #3498db; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px;
         }
-
-        /* 入力フォーム共通 */
         .input-group { margin-bottom: 20px; text-align: left; }
         .input-group label { display: block; font-size: 13px; color: #666; margin-bottom: 8px; font-weight: bold; }
         .input-group input {
@@ -90,7 +73,6 @@
             transition: border-color 0.3s;
         }
         .input-group input:focus { border-color: #3498db; outline: none; background: white; }
-        
         .save-btn {
             width: 100%; padding: 15px; background: linear-gradient(135deg, #2ecc71, #3498db);
             color: white; border: none; border-radius: 12px;
@@ -103,7 +85,47 @@
             padding: 10px 20px; border-radius: 20px; cursor: pointer; font-weight: bold;
         }
 
-        /* --- モーダル --- */
+        /* --- ✨ 新機能: 通知バナー (Toast) --- */
+        #notificationBanner {
+            position: fixed; top: -100px; left: 50%; transform: translateX(-50%);
+            width: 90%; max-width: 400px;
+            padding: 15px 20px; border-radius: 15px;
+            background: white; color: #333;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            display: flex; align-items: center; gap: 15px;
+            z-index: 3000; transition: top 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        #notificationBanner.success { border-left: 5px solid #2ecc71; }
+        #notificationBanner.error { border-left: 5px solid #e74c3c; }
+        #notificationIcon { font-size: 20px; }
+        .success #notificationIcon { color: #2ecc71; }
+        .error #notificationIcon { color: #e74c3c; }
+
+        /* --- ✨ 新機能: 確認ダイアログ (Confirm Modal) --- */
+        #confirmModal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 2500;
+            justify-content: center; align-items: center;
+        }
+        .confirm-card {
+            background: white; width: 80%; max-width: 300px;
+            padding: 25px; border-radius: 20px; text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            animation: popIn 0.2s ease;
+        }
+        .confirm-title { font-size: 18px; font-weight: bold; margin-bottom: 10px; }
+        .confirm-msg { font-size: 14px; color: #666; margin-bottom: 25px; }
+        .confirm-actions { display: flex; justify-content: space-between; gap: 10px; }
+        .btn-cancel {
+            flex: 1; padding: 10px; border: 1px solid #ddd; background: white;
+            color: #666; border-radius: 10px; cursor: pointer; font-weight: bold;
+        }
+        .btn-ok {
+            flex: 1; padding: 10px; border: none; background: #3498db;
+            color: white; border-radius: 10px; cursor: pointer; font-weight: bold;
+        }
+
+        /* --- 既存モーダル --- */
         #authModal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.5); z-index: 2000;
@@ -115,7 +137,7 @@
         }
         .switch-link { margin-top: 15px; font-size: 12px; color: #666; cursor: pointer; text-decoration: underline; }
 
-        /* --- 下部メニュー --- */
+        /* 下部メニュー */
         .bottom-nav {
             position: fixed; bottom: 0; left: 0; width: 100%; z-index: 100;
             background: white; display: flex; justify-content: space-around;
@@ -126,9 +148,26 @@
         .nav-item i { font-size: 20px; display: block; margin-bottom: 5px; }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes popIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
     </style>
 </head>
 <body>
+
+    <div id="notificationBanner" class="success">
+        <i id="notificationIcon" class="fas fa-check-circle"></i>
+        <div id="notificationText">ログインしました</div>
+    </div>
+
+    <div id="confirmModal">
+        <div class="confirm-card">
+            <div class="confirm-title" id="confirmTitle">確認</div>
+            <div class="confirm-msg" id="confirmMsg">本当に実行しますか？</div>
+            <div class="confirm-actions">
+                <button class="btn-cancel" onclick="closeConfirm()">キャンセル</button>
+                <button class="btn-ok" id="confirmOkBtn">OK</button>
+            </div>
+        </div>
+    </div>
 
     <div id="homeScreen">
         <div class="header">
@@ -179,21 +218,19 @@
                 <label>お名前</label>
                 <input type="text" id="editName" placeholder="新しい名前">
             </div>
-
             <div class="input-group">
                 <label>メールアドレス</label>
                 <input type="email" id="editEmail" placeholder="新しいメールアドレス">
             </div>
-
             <div class="input-group">
-                <label>パスワード変更 (必要な場合のみ)</label>
-                <input type="password" id="editPass" placeholder="新しいパスワード (6文字以上)">
+                <label>パスワード変更</label>
+                <input type="password" id="editPass" placeholder="新しいパスワード">
             </div>
 
             <button class="save-btn" onclick="updateProfile()">変更を保存する</button>
 
             <div class="logout-btn-area">
-                <button class="danger-btn" onclick="logout()">ログアウト</button>
+                <button class="danger-btn" onclick="confirmLogout()">ログアウト</button>
             </div>
         </div>
     </div>
@@ -209,7 +246,7 @@
             <h2 id="modalTitle">ログイン</h2>
             <div class="input-group" id="nameGroup" style="display:none;">
                 <label>お名前</label>
-                <input type="text" id="inputName" placeholder="例：山田太郎">
+                <input type="text" id="inputName" placeholder="例：つばさ">
             </div>
             <div class="input-group">
                 <label>メールアドレス</label>
@@ -220,7 +257,7 @@
                 <input type="password" id="inputPass" placeholder="••••••••">
             </div>
             <button class="save-btn" style="padding:12px;" id="authBtn" onclick="handleAuth()">決定</button>
-            <div class="switch-link" id="switchText" onclick="toggleMode()">アカウントをお持ちでない方は登録</div>
+            <div class="switch-link" id="switchText" onclick="toggleMode()">登録はこちら</div>
             <div class="switch-link" onclick="closeAuthModal()">閉じる</div>
         </div>
     </div>
@@ -232,7 +269,6 @@
         import { getFirestore, doc, setDoc, getDoc, updateDoc } 
             from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // 設定情報
         const firebaseConfig = {
           apiKey: "AIzaSyBzGdWG07Y_5SFmC4HOD3tde78F9HutSiI",
           authDomain: "test-app-371a4.firebaseapp.com",
@@ -247,25 +283,69 @@
         const db = getFirestore(app);
 
         let currentAuthMode = 'login';
-        let currentUserData = null; // ユーザー情報を一時保存
+        let currentUserData = null;
 
-        // --- 画面切り替え ---
+        // --- ✨ 通知・ダイアログ用の便利関数 ---
+        
+        // 通知を表示する関数
+        window.showNotify = (msg, type = 'success') => {
+            const banner = document.getElementById('notificationBanner');
+            const text = document.getElementById('notificationText');
+            const icon = document.getElementById('notificationIcon');
+            
+            text.innerText = msg;
+            banner.className = type; // success or error
+            
+            // アイコン切り替え
+            if(type === 'success') icon.className = "fas fa-check-circle";
+            else icon.className = "fas fa-exclamation-circle";
+
+            // 表示（上から降りてくる）
+            banner.style.top = "20px";
+
+            // 3秒後に隠す
+            setTimeout(() => {
+                banner.style.top = "-100px";
+            }, 3000);
+        };
+
+        // 確認ダイアログを表示する関数
+        window.showConfirmDialog = (title, msg, onOk) => {
+            const modal = document.getElementById('confirmModal');
+            document.getElementById('confirmTitle').innerText = title;
+            document.getElementById('confirmMsg').innerText = msg;
+            
+            // OKボタンを押した時の動作を設定
+            const okBtn = document.getElementById('confirmOkBtn');
+            // 既存のイベントを消すために再生成（簡易的な方法）
+            const newOkBtn = okBtn.cloneNode(true);
+            okBtn.parentNode.replaceChild(newOkBtn, okBtn);
+            
+            newOkBtn.onclick = () => {
+                onOk(); // 指定された動作を実行
+                window.closeConfirm();
+            };
+            
+            modal.style.display = 'flex';
+        };
+
+        window.closeConfirm = () => {
+            document.getElementById('confirmModal').style.display = 'none';
+        };
+
+        // --- 画面遷移 ---
         window.showMypage = () => {
             if (!auth.currentUser) {
-                alert("ログインしてください");
+                window.showNotify("ログインしてください", "error");
                 window.openAuthModal('login');
                 return;
             }
-            // 画面切り替え
             document.getElementById('homeScreen').style.display = 'none';
             document.getElementById('mypageScreen').style.display = 'block';
             
-            // 今の情報をフォームに入れる
-            if (currentUserData) {
-                document.getElementById('editName').value = currentUserData.name || "";
-            }
+            if (currentUserData) document.getElementById('editName').value = currentUserData.name || "";
             document.getElementById('editEmail').value = auth.currentUser.email || "";
-            document.getElementById('editPass').value = ""; // パスワードは空欄にしておく
+            document.getElementById('editPass').value = "";
         };
 
         window.showHome = () => {
@@ -273,50 +353,39 @@
             document.getElementById('mypageScreen').style.display = 'none';
         };
 
-        // --- プロフィール更新処理 ---
+        // --- プロフィール更新 ---
         window.updateProfile = async () => {
-            const newName = document.getElementById('editName').value;
-            const newEmail = document.getElementById('editEmail').value;
-            const newPass = document.getElementById('editPass').value;
-            const user = auth.currentUser;
+            window.showConfirmDialog("変更の保存", "登録情報を更新しますか？", async () => {
+                const newName = document.getElementById('editName').value;
+                const newEmail = document.getElementById('editEmail').value;
+                const newPass = document.getElementById('editPass').value;
+                const user = auth.currentUser;
 
-            if (!user) return;
+                try {
+                    if (newName && newName !== currentUserData.name) {
+                        await updateDoc(doc(db, "users", user.uid), { name: newName });
+                        currentUserData.name = newName;
+                        document.getElementById('greetingText').innerHTML = `こんにちは、<br>${newName}様`;
+                    }
+                    if (newEmail && newEmail !== user.email) await updateEmail(user, newEmail);
+                    if (newPass) await updatePassword(user, newPass);
 
-            if(!confirm("変更を保存しますか？")) return;
+                    window.showNotify("情報を更新しました！", "success");
+                    window.showHome();
 
-            try {
-                // 1. 名前の更新 (データベース)
-                if (newName && newName !== currentUserData.name) {
-                    await updateDoc(doc(db, "users", user.uid), { name: newName });
-                    currentUserData.name = newName; // 画面表示用データも更新
-                    document.getElementById('greetingText').innerHTML = `こんにちは、<br>${newName}様`;
+                } catch (error) {
+                    console.error(error);
+                    if (error.code === 'auth/requires-recent-login') {
+                        window.showNotify("セキュリティのため再ログインが必要です", "error");
+                        window.logoutExecution();
+                    } else {
+                        window.showNotify(error.message, "error");
+                    }
                 }
-
-                // 2. メアドの更新
-                if (newEmail && newEmail !== user.email) {
-                    await updateEmail(user, newEmail);
-                }
-
-                // 3. パスワードの更新
-                if (newPass) {
-                    await updatePassword(user, newPass);
-                }
-
-                alert("情報を更新しました！");
-                window.showHome();
-
-            } catch (error) {
-                console.error(error);
-                if (error.code === 'auth/requires-recent-login') {
-                    alert("セキュリティのため、もう一度ログインし直してから変更してください。");
-                    window.logout();
-                } else {
-                    alert("エラー: " + error.message);
-                }
-            }
+            });
         };
 
-        // --- 認証まわり（前回と同じ） ---
+        // --- 認証まわり ---
         window.openAuthModal = (mode) => {
             currentAuthMode = mode;
             document.getElementById('authModal').style.display = 'flex';
@@ -331,21 +400,25 @@
             } else {
                 nameGroup.style.display = 'none';
                 title.innerText = "ログイン";
-                switchText.innerText = "アカウントをお持ちでない方は登録";
+                switchText.innerText = "登録はこちら";
             }
         };
 
         window.closeAuthModal = () => document.getElementById('authModal').style.display = 'none';
-        
         window.toggleMode = () => window.openAuthModal(currentAuthMode === 'login' ? 'register' : 'login');
 
-        window.logout = () => {
-            if(confirm("ログアウトしますか？")) {
-                signOut(auth).then(() => {
-                    alert("ログアウトしました");
-                    window.location.reload(); // 画面リセット
-                });
-            }
+        // ログアウト確認
+        window.confirmLogout = () => {
+            window.showConfirmDialog("ログアウト", "本当にログアウトしますか？", () => {
+                window.logoutExecution();
+            });
+        };
+
+        window.logoutExecution = () => {
+            signOut(auth).then(() => {
+                window.showNotify("ログアウトしました", "success");
+                setTimeout(() => window.location.reload(), 1000); // 少し待ってリロード
+            });
         };
 
         window.handleAuth = async () => {
@@ -354,7 +427,7 @@
             const name = document.getElementById('inputName').value;
             const btn = document.getElementById('authBtn');
 
-            if (!email || !pass) { alert("入力してください"); return; }
+            if (!email || !pass) { window.showNotify("入力してください", "error"); return; }
             btn.disabled = true; btn.innerText = "処理中...";
 
             try {
@@ -364,28 +437,30 @@
                     await setDoc(doc(db, "users", cred.user.uid), {
                         name: name, email: email, createdAt: new Date()
                     });
-                    alert("登録成功！");
+                    window.showNotify("登録完了！ようこそ", "success");
                     window.closeAuthModal();
                 } else {
                     await signInWithEmailAndPassword(auth, email, pass);
-                    alert("ログイン成功！");
+                    window.showNotify("ログインしました", "success");
                     window.closeAuthModal();
                 }
             } catch (error) {
-                alert("エラー: " + error.message);
+                let msg = error.message;
+                if(error.code === 'auth/wrong-password') msg = "パスワードが違います";
+                if(error.code === 'auth/user-not-found') msg = "登録されていません";
+                if(error.code === 'auth/email-already-in-use') msg = "既に登録されています";
+                window.showNotify(msg, "error");
             } finally {
                 btn.disabled = false; btn.innerText = "決定";
             }
         };
 
-        // --- ログイン監視 ---
         onAuthStateChanged(auth, async (user) => {
             const greeting = document.getElementById('greetingText');
             const loginArea = document.getElementById('loginArea');
             const userArea = document.getElementById('userArea');
 
             if (user) {
-                // DBから名前取得
                 const userDoc = await getDoc(doc(db, "users", user.uid));
                 if (userDoc.exists()) {
                     currentUserData = userDoc.data();
@@ -398,7 +473,6 @@
                 greeting.innerHTML = `ようこそ<br>ゲスト様`;
                 loginArea.style.display = 'block';
                 userArea.style.display = 'none';
-                // ログアウト状態でマイページにいたらホームに戻す
                 document.getElementById('mypageScreen').style.display = 'none';
                 document.getElementById('homeScreen').style.display = 'block';
             }
