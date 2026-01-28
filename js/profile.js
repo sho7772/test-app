@@ -1,8 +1,10 @@
 import { auth, db } from "./config.js";
-import { doc, updateDoc, getDoc, updateEmail, updatePassword, reauthenticateWithCredential, deleteUser, EmailAuthProvider } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"; // 注意: updateEmail等はauthからのimportでなくfirebase-auth
-// ※Firebase v9/10のimportパスはauth.jsと同じなので省略せず正しく書きます
-import { deleteDoc, collection, query, where, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+// Auth関連のみ auth.js からインポート
+import { updateEmail, updatePassword, reauthenticateWithCredential, deleteUser, EmailAuthProvider } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+// Firestore関連 (doc, updateDoc, getDoc をこっちに移動)
+import { doc, updateDoc, getDoc, deleteDoc, collection, query, where, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { showNotify, showConfirmDialog, switchTab, uploadToCloudinary } from "./ui.js";
+
 
 let tempIconData = { color: '#555', icon: 'fa-user', imageUrl: null };
 let selectedFile = null;
