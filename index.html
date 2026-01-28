@@ -53,7 +53,7 @@
         .logout-btn-area { margin-top: 30px; text-align: center; }
         .danger-btn { color: #e74c3c; background: none; border: 1px solid #e74c3c; padding: 10px 20px; border-radius: 20px; cursor: pointer; font-weight: bold; }
 
-        /* --- プロフィールアイコン (修正版) --- */
+        /* --- プロフィールアイコン --- */
         .profile-icon-area { display: flex; flex-direction: column; align-items: center; margin-bottom: 30px; }
         .profile-avatar-large { position: relative; width: 100px; height: 100px; border-radius: 50%; background: #eee; display: flex; align-items: center; justify-content: center; font-size: 50px; color: #aaa; margin-bottom: 15px; border: 4px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.1); cursor: pointer; }
         .avatar-img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: none; }
@@ -66,7 +66,7 @@
         .color-option.selected, .icon-option.selected { border-color: #333; transform: scale(1.1); }
         .icon-option { background: white; line-height: 30px; font-size: 16px; }
 
-        /* --- フィード (SNS) スタイル --- */
+        /* --- フィード (SNS) --- */
         .feed-list { display: flex; flex-direction: column; gap: 20px; padding-bottom: 40px; }
         .feed-card { background: white; border-radius: 20px; padding: 20px; box-shadow: 0 2px 15px rgba(0,0,0,0.03); }
         .feed-header { display: flex; align-items: center; margin-bottom: 15px; }
@@ -85,7 +85,7 @@
         .fab-btn { position: fixed; bottom: 80px; right: 20px; width: 60px; height: 60px; background: #3498db; border-radius: 50%; box-shadow: 0 5px 20px rgba(52, 152, 219, 0.4); display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; cursor: pointer; transition: transform 0.2s; z-index: 500; }
         .fab-btn:active { transform: scale(0.9); }
 
-        /* 通知・モーダル (スッキリ版) */
+        /* 通知・モーダル */
         #notificationBanner { position: fixed; top: -100px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; padding: 15px 20px; border-radius: 15px; background: white; color: #333; box-shadow: 0 10px 30px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 15px; z-index: 3000; transition: top 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         #notificationIcon { font-size: 20px; }
         .success #notificationIcon { color: #2ecc71; } .error #notificationIcon { color: #e74c3c; }
@@ -100,7 +100,7 @@
         .btn-ok { flex: 1; padding: 10px; border: none; background: #3498db; color: white; border-radius: 10px; cursor: pointer; }
         .switch-link { margin-top: 15px; font-size: 12px; color: #666; cursor: pointer; text-decoration: underline; }
 
-        /* 画像プレビュー(投稿用) */
+        /* 画像プレビュー */
         .post-img-preview { width: 100%; height: 150px; border-radius: 10px; background: #eee; margin-top: 10px; display: none; object-fit: cover; }
         .post-img-area { position: relative; }
         .remove-img-btn { position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.5); color: white; border-radius: 50%; width: 25px; height: 25px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 12px; display: none; }
@@ -227,6 +227,7 @@
             <div class="input-group">
                 <label>公開名 (ニックネーム)</label>
                 <input type="text" id="publicName" placeholder="アプリ内で表示される名前">
+                <div style="font-size:11px; color:#999; margin-top:5px;">※この名前は他のユーザーに公開されます。本名を入力しないようご注意ください。</div>
             </div>
             <button id="saveProfileDataBtn" class="save-btn" onclick="savePublicProfile()" disabled>変更を保存する</button>
         </div>
@@ -239,6 +240,7 @@
         </div>
         <div class="settings-card">
             <div class="section-label">アカウント設定</div>
+            <div style="font-size:12px; color:#999; margin-bottom:15px;">※ここに入力した本名とメールアドレスは公開されません。</div>
             <div class="input-group">
                 <label>お名前 (本名)</label>
                 <input type="text" id="editName" placeholder="新しい名前">
@@ -264,8 +266,9 @@
         <div class="auth-card">
             <h2 id="modalTitle">ログイン</h2>
             <div class="input-group" id="nameGroup" style="display:none;">
-                <label>お名前</label>
+                <label>お名前 (本名)</label>
                 <input type="text" id="inputName" placeholder="例：山田太郎">
+                <div style="font-size:10px; color:#999; margin-top:3px;">※本名は公開されません</div>
             </div>
             <div class="input-group">
                 <label>メールアドレス</label>
@@ -315,7 +318,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateEmail, updatePassword } 
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateEmail, updatePassword, updateProfile } 
             from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, addDoc, query, orderBy, limit, onSnapshot, serverTimestamp } 
             from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -339,11 +342,11 @@
         const db = getFirestore(app);
 
         let currentAuthMode = 'login';
-        let currentUserData = null;
+        let currentUserData = null; // Firestoreの公開データ
         let tempIconData = { color: '#eee', icon: 'fa-user', imageUrl: null };
         let selectedFile = null;
         let selectedPostFile = null;
-        let feedUnsubscribe = null; // リスナー解除用
+        let feedUnsubscribe = null; 
 
         const colors = ['#e74c3c', '#e67e22', '#f1c40f', '#2ecc71', '#3498db', '#9b59b6', '#95a5a6', '#34495e'];
         const icons = ['fa-user', 'fa-smile', 'fa-robot', 'fa-cat', 'fa-dog', 'fa-fish', 'fa-rocket', 'fa-star'];
@@ -370,12 +373,10 @@
 
         // --- ナビゲーション制御 ---
         window.switchTab = (tab) => {
-            // ナビゲーションの見た目切り替え
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
             if(tab === 'home') document.getElementById('navHome').classList.add('active');
             if(tab === 'feed') document.getElementById('navFeed').classList.add('active');
 
-            // 画面切り替え
             document.querySelectorAll('.screen-container').forEach(e => e.style.display = 'none');
             document.getElementById('homeScreen').style.display = 'none';
 
@@ -383,13 +384,11 @@
                 document.getElementById('homeScreen').style.display = 'block';
             } else if (tab === 'feed') {
                 document.getElementById('feedScreen').style.display = 'block';
-                if(!feedUnsubscribe) loadFeed(); // まだ読み込んでなければロード
+                if(!feedUnsubscribe) loadFeed();
             }
         };
 
-        window.goBack = () => {
-            window.switchTab('home');
-        };
+        window.goBack = () => window.switchTab('home');
 
         // --- ヘッダーメニュー ---
         window.toggleHeaderMenu = () => document.getElementById('headerMenu').classList.toggle('active');
@@ -399,13 +398,14 @@
             if (m.classList.contains('active') && !m.contains(e.target) && !i.contains(e.target)) m.classList.remove('active');
         });
 
-        // --- プロフィール画面 ---
+        // --- プロフィール画面（公開情報） ---
         window.showProfile = () => {
             if(!auth.currentUser) return window.openAuthModal('login');
             document.querySelectorAll('.screen-container').forEach(e => e.style.display = 'none');
             document.getElementById('homeScreen').style.display = 'none';
             document.getElementById('profileScreen').style.display = 'block';
             
+            // 公開プロフィール情報をセット
             document.getElementById('publicName').value = currentUserData.publicName || "";
             tempIconData = { 
                 color: currentUserData.iconColor || '#eee', 
@@ -419,21 +419,22 @@
             checkProfileChanges();
         };
 
-        // --- アカウント設定画面 ---
+        // --- アカウント設定画面（非公開情報） ---
         window.showAccountSettings = () => {
             if(!auth.currentUser) return window.openAuthModal('login');
             document.querySelectorAll('.screen-container').forEach(e => e.style.display = 'none');
             document.getElementById('homeScreen').style.display = 'none';
             document.getElementById('accountSettingsScreen').style.display = 'block';
             
-            document.getElementById('editName').value = currentUserData.name || "";
+            // ★本名はAuthから取得（DBには保存されていないため）
+            document.getElementById('editName').value = auth.currentUser.displayName || "";
             document.getElementById('editEmail').value = auth.currentUser.email || "";
             document.getElementById('editPass').value = "";
             document.getElementById('editPassConfirm').value = "";
             checkAccountChanges();
         };
 
-        // --- 画像アップロード処理 ---
+        // --- 画像アップロード ---
         window.triggerImageUpload = () => document.getElementById('imageInput').click();
         
         window.handleImageSelect = (event) => {
@@ -463,7 +464,6 @@
             const formData = new FormData();
             formData.append('file', file);
             formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET); 
-            
             const fileName = `${type}_${user.uid}_${new Date().getTime()}`;
             formData.append('public_id', fileName);
 
@@ -524,6 +524,7 @@
             createIconSelector(); 
         }
 
+        // --- 公開プロフィールの保存 ---
         window.savePublicProfile = async () => {
             window.showConfirmDialog("変更を保存しますか？", async () => {
                 const newName = document.getElementById('publicName').value;
@@ -532,9 +533,7 @@
                 try {
                     let finalUrl = currentUserData.photoURL || null;
                     if (!tempIconData.imageUrl && currentUserData.photoURL) finalUrl = null;
-                    if (selectedFile) {
-                        finalUrl = await uploadToCloudinary(selectedFile);
-                    }
+                    if (selectedFile) finalUrl = await uploadToCloudinary(selectedFile);
 
                     const user = auth.currentUser;
                     const updateData = {
@@ -545,10 +544,7 @@
                     };
                     
                     await updateDoc(doc(db, "users", user.uid), updateData);
-
-                    // ローカルデータ更新
                     Object.assign(currentUserData, updateData);
-                    
                     updateHeader();
                     window.showNotify("更新しました");
                     window.goBack();
@@ -565,28 +561,15 @@
         }
         document.getElementById('publicName').oninput = checkProfileChanges;
 
+        // --- アカウント情報の更新（重要：本名はAuthへ） ---
         function checkAccountChanges() {
-            const n = document.getElementById('editName').value !== (currentUserData.name||"");
+            // ★本名はAuthと比較
+            const n = document.getElementById('editName').value !== (auth.currentUser.displayName || "");
             const e = document.getElementById('editEmail').value !== auth.currentUser.email;
             const p = document.getElementById('editPass').value.length > 0;
             document.getElementById('saveAccountBtn').disabled = !(n || e || p);
         }
         ['editName','editEmail','editPass'].forEach(id => document.getElementById(id).oninput = checkAccountChanges);
-
-        function updateHeader() {
-            if(!currentUserData) return;
-            const h = document.getElementById('headerUserIcon');
-            if(currentUserData.photoURL) {
-                h.innerHTML = `<img src="${currentUserData.photoURL}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
-                h.style.background = 'transparent';
-            } else {
-                h.innerHTML = `<i class="fas ${currentUserData.iconClass||'fa-user'}"></i>`;
-                h.style.background = currentUserData.iconColor||'#eee';
-                h.style.color = 'white';
-            }
-            const name = currentUserData.publicName || currentUserData.name || "メンバー";
-            document.getElementById('greetingText').innerHTML = `こんにちは、<br>${name}様`;
-        }
 
         window.updateAccountInfo = async () => {
             const n = document.getElementById('editName').value;
@@ -598,9 +581,17 @@
             window.showConfirmDialog("変更を保存しますか？", async () => {
                 try {
                     const u = auth.currentUser;
-                    if(n !== currentUserData.name) { await updateDoc(doc(db,"users",u.uid),{name:n}); currentUserData.name=n; }
+                    
+                    // ★本名はAuthのProfileを更新（DBには書き込まない）
+                    if(n !== u.displayName) { 
+                        await updateProfile(u, { displayName: n });
+                    }
+
+                    // メアドとパスワードの更新
                     if(e !== u.email) await updateEmail(u,e);
                     if(p) await updatePassword(u,p);
+
+                    updateHeader(); // ヘッダーの挨拶更新
                     window.showNotify("更新しました"); window.goBack();
                 } catch(err) { 
                     if(err.code==='auth/requires-recent-login') { window.showNotify("再ログインが必要です","error"); window.logoutExecution(); }
@@ -637,7 +628,11 @@
                 if(currentAuthMode==='register') {
                     if(!n) throw new Error("お名前を入力してください");
                     const c = await createUserWithEmailAndPassword(auth,e,p);
-                    await setDoc(doc(db,"users",c.user.uid),{name:n,email:e,createdAt:new Date()});
+                    
+                    // ★重要：本名はAuthに保存し、DBには保存しない（createdAtのみ）
+                    await updateProfile(c.user, { displayName: n });
+                    await setDoc(doc(db,"users",c.user.uid), { createdAt:new Date() });
+                    
                     window.showNotify("登録完了");
                 } else {
                     await signInWithEmailAndPassword(auth,e,p);
@@ -648,9 +643,7 @@
             finally { btn.disabled = false; btn.innerText = "決定"; }
         };
 
-        // --- フィード機能 (SNS) ---
-
-        // 投稿モーダル
+        // --- フィード機能 ---
         window.openPostModal = () => {
             if(!auth.currentUser) return window.openAuthModal('login');
             document.getElementById('postModal').style.display = 'flex';
@@ -659,7 +652,6 @@
         };
         window.closePostModal = () => document.getElementById('postModal').style.display = 'none';
 
-        // 投稿用画像ハンドリング
         window.handlePostImageSelect = (event) => {
             const file = event.target.files[0];
             if (!file) return;
@@ -680,7 +672,6 @@
             document.getElementById('removePostImgBtn').style.display = 'none';
         };
 
-        // 投稿送信
         window.submitPost = async () => {
             const text = document.getElementById('postText').value.trim();
             if(!text && !selectedPostFile) return window.showNotify("本文または画像を入力してください", "error");
@@ -690,15 +681,16 @@
 
             try {
                 let imageUrl = null;
-                if(selectedPostFile) {
-                    imageUrl = await uploadToCloudinary(selectedPostFile, 'post');
-                }
+                if(selectedPostFile) imageUrl = await uploadToCloudinary(selectedPostFile, 'post');
 
                 const user = currentUserData;
-                // 投稿ドキュメント作成
+                // ★投稿者名は「公開名（ニックネーム）」のみ使用
+                // 本名（auth.currentUser.displayName）は使用しない
+                const userName = user.publicName || "名無しさん";
+
                 await addDoc(collection(db, "posts"), {
                     userId: auth.currentUser.uid,
-                    userName: user.publicName || user.name || "名無し",
+                    userName: userName,
                     userIconColor: user.iconColor || '#eee',
                     userIconClass: user.iconClass || 'fa-user',
                     userPhotoURL: user.photoURL || null,
@@ -710,20 +702,14 @@
 
                 window.showNotify("投稿しました！");
                 window.closePostModal();
-
-            } catch(e) {
-                window.showNotify("投稿エラー: " + e.message, "error");
-            } finally {
-                btn.disabled = false; btn.innerText = "投稿する";
-            }
+            } catch(e) { window.showNotify("投稿エラー: " + e.message, "error"); }
+            finally { btn.disabled = false; btn.innerText = "投稿する"; }
         };
 
-        // フィード読み込み (リアルタイム)
         function loadFeed() {
             const list = document.getElementById('feedList');
             const q = query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(20));
 
-            // リアルタイムリスナー設定
             feedUnsubscribe = onSnapshot(q, (snapshot) => {
                 list.innerHTML = "";
                 if(snapshot.empty) {
@@ -736,14 +722,12 @@
                     const el = document.createElement('div');
                     el.className = 'feed-card';
                     
-                    // 日時フォーマット
                     let timeStr = "";
                     if(post.createdAt) {
                         const d = post.createdAt.toDate();
                         timeStr = `${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
                     }
 
-                    // アイコン表示ロジック
                     let iconHtml = "";
                     let bgStyle = "";
                     if(post.userPhotoURL) {
@@ -754,26 +738,21 @@
                         bgStyle = `background: ${post.userIconColor || '#eee'};`;
                     }
 
-                    // HTML生成
                     el.innerHTML = `
                         <div class="feed-header">
                             <div class="feed-avatar" style="${bgStyle}">
                                 ${iconHtml}
                             </div>
                             <div class="feed-info">
-                                <div class="feed-name">${post.userName}</div>
+                                <div class="feed-name">${escapeHtml(post.userName)}</div>
                                 <div class="feed-time">${timeStr}</div>
                             </div>
                         </div>
                         <div class="feed-content">${escapeHtml(post.text)}</div>
                         ${post.imageUrl ? `<div class="feed-image" style="display:block;"><img src="${post.imageUrl}"></div>` : ''}
                         <div class="feed-actions">
-                            <div class="action-item">
-                                <i class="far fa-heart"></i> いいね
-                            </div>
-                            <div class="action-item">
-                                <i class="far fa-comment"></i> コメント
-                            </div>
+                            <div class="action-item"><i class="far fa-heart"></i> いいね</div>
+                            <div class="action-item"><i class="far fa-comment"></i> コメント</div>
                         </div>
                     `;
                     list.appendChild(el);
@@ -781,7 +760,6 @@
             });
         }
 
-        // XSS対策
         function escapeHtml(unsafe) {
             if(!unsafe) return "";
             return unsafe
@@ -792,11 +770,32 @@
                  .replace(/'/g, "&#039;");
         }
 
-        // --- 初期化 ---
+        // --- 初期化 & ヘッダー更新 ---
+        function updateHeader() {
+            if(!currentUserData) return;
+            const h = document.getElementById('headerUserIcon');
+            // アイコン：公開情報から
+            if(currentUserData.photoURL) {
+                h.innerHTML = `<img src="${currentUserData.photoURL}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
+                h.style.background = 'transparent';
+            } else {
+                h.innerHTML = `<i class="fas ${currentUserData.iconClass||'fa-user'}"></i>`;
+                h.style.background = currentUserData.iconColor||'#eee';
+                h.style.color = 'white';
+            }
+            
+            // ★挨拶：ホーム画面は自分しか見ないので、本名(Auth)を表示してOK
+            const name = auth.currentUser.displayName || currentUserData.publicName || "ゲスト";
+            document.getElementById('greetingText').innerHTML = `こんにちは、<br>${name}様`;
+        }
+
         onAuthStateChanged(auth, async (u) => {
             if(u) {
                 const d = await getDoc(doc(db,"users",u.uid));
-                if(d.exists()) { currentUserData=d.data(); updateHeader(); }
+                // DBにデータがなくても、空オブジェクトとして扱う
+                currentUserData = d.exists() ? d.data() : {};
+                
+                updateHeader();
                 document.getElementById('loginArea').style.display='none';
                 document.getElementById('userArea').style.display='block';
             } else {
@@ -804,7 +803,7 @@
                 document.getElementById('greetingText').innerHTML=`ようこそ<br>ゲスト様`;
                 document.getElementById('loginArea').style.display='block';
                 document.getElementById('userArea').style.display='none';
-                window.switchTab('home'); // ログアウトしたらホームへ
+                window.switchTab('home');
             }
         });
     </script>
