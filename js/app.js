@@ -1,10 +1,14 @@
 import { auth, db } from "./config.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { loadTheme } from "./ui.js"; // テーマの読み込み
 import "./ui.js";     // 共通機能の読み込み
 import "./auth.js";   // 認証機能の読み込み
 import "./feed.js";   // フィード機能の読み込み
 import "./profile.js";// プロフィール機能の読み込み
+
+// アプリ起動時にテーマを読み込む
+loadTheme(); 
 
 // グローバル変数
 window.currentUserData = null;
