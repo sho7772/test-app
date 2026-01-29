@@ -245,3 +245,138 @@ body { margin: 0; padding: 0; background-color: #f5f7fa; font-family: -apple-sys
 .feed-image img {
     cursor: zoom-in;
 }
+/* =========================================
+   ダークモード切り替えスイッチのスタイル
+   ========================================= */
+.menu-item-toggle {
+    justify-content: space-between;
+}
+
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 20px;
+    margin-left: 10px;
+}
+
+.toggle-switch input { 
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 34px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: #3498db;
+}
+
+input:checked + .slider:before {
+    transform: translateX(20px);
+}
+
+/* =========================================
+   ダークモード定義 (#000033 ベース)
+   ========================================= */
+body.dark-mode {
+    background-color: #000033; /* 指定: 背景色 */
+    color: #e0e0e0;
+}
+
+body.dark-mode .header .date,
+body.dark-mode .menu-item,
+body.dark-mode .page-header .back-btn,
+body.dark-mode .input-group label,
+body.dark-mode .utility-card div {
+    color: #ccc !important;
+}
+
+/* カード・メニュー背景 */
+body.dark-mode .settings-card,
+body.dark-mode .feed-card,
+body.dark-mode .utility-card,
+body.dark-mode #headerMenu,
+body.dark-mode .comment-sheet,
+body.dark-mode .center-card,
+body.dark-mode .comment-input-area,
+body.dark-mode .comment-body,
+body.dark-mode .bottom-nav {
+    background-color: #0a0a45; /* 背景より少し明るいネイビー */
+    color: #fff;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+}
+
+/* 入力フォーム */
+body.dark-mode input[type="text"],
+body.dark-mode input[type="email"],
+body.dark-mode input[type="password"],
+body.dark-mode textarea,
+body.dark-mode .prefix-input-container,
+body.dark-mode .prefix-input-container input,
+body.dark-mode .comment-input {
+    background-color: #000022;
+    border-color: #333366; /* 指定: ボタンなど */
+    color: #fff;
+}
+
+body.dark-mode input::placeholder,
+body.dark-mode textarea::placeholder {
+    color: #666699;
+}
+
+body.dark-mode .input-group input:focus, 
+body.dark-mode .input-group textarea:focus {
+    border-color: #3498db;
+    background-color: #000033;
+}
+
+/* ヘッダー・テキスト */
+body.dark-mode .feed-name,
+body.dark-mode .feed-content,
+body.dark-mode .comment-text,
+body.dark-mode .page-title,
+body.dark-mode .greeting h1 {
+    color: #fff;
+}
+
+/* ボタン・アイコン系 */
+body.dark-mode .menu-item:hover {
+    background-color: #333366; /* 指定: ボタンなど */
+}
+
+body.dark-mode .menu-divider,
+body.dark-mode .feed-actions,
+body.dark-mode .bottom-nav,
+body.dark-mode .comment-header,
+body.dark-mode .comment-input-area {
+    border-color: #333366; /* 指定: ボタンなど */
+}
+
+body.dark-mode .fab-btn {
+    box-shadow: 0 5px 20px rgba(0,0,0,0.6);
+}
+
+/* プロフィールアイコンのボーダー */
+body.dark-mode .header-user-icon {
+    border-color: #333366;
+}
