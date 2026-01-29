@@ -98,3 +98,34 @@ window.closeAuthModal = () => document.getElementById('authModal').style.display
 window.toggleHeaderMenu = () => document.getElementById('headerMenu').classList.toggle('active');
 window.openImageModal = openImageModal;
 window.closeImageModal = closeImageModal;
+// ダークモード切り替え機能
+export const toggleDarkMode = () => {
+    const body = document.body;
+    const checkbox = document.getElementById('darkModeToggle');
+    body.classList.toggle('dark-mode');
+    
+    // スイッチの表示を同期
+    const isDark = body.classList.contains('dark-mode');
+    if(checkbox) checkbox.checked = isDark;
+    
+    // 設定を保存
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+};
+
+// 起動時にテーマを適用
+export const loadTheme = () => {
+    const savedTheme = localStorage.getItem('theme');
+    const checkbox = document.getElementById('darkModeToggle');
+    
+    if (savedTheme === 'dark') {
+        document.body.classList.add('dark-mode');
+        if(checkbox) checkbox.checked = true;
+    } else {
+        document.body.classList.remove('dark-mode');
+        if(checkbox) checkbox.checked = false;
+    }
+};
+
+// グローバル公開
+window.toggleDarkMode = toggleDarkMode;
+
