@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理画面 - ユーザー管理</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+
+    <div class="admin-container">
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h2>Admin Panel</h2>
+            </div>
+            <ul class="sidebar-menu">
+                <li class="active">
+                    <a href="#"><i class="fas fa-users"></i> ユーザー管理</a>
+                </li>
+                <li>
+                    <a href="#" class="disabled"><i class="fas fa-chart-bar"></i> 統計 (未実装)</a>
+                </li>
+                <li>
+                    <a href="#" class="disabled"><i class="fas fa-cog"></i> 設定 (未実装)</a>
+                </li>
+            </ul>
+            <div class="sidebar-footer">
+                <a href="index.html"><i class="fas fa-sign-out-alt"></i> アプリに戻る</a>
+            </div>
+        </nav>
+
+        <main class="main-content">
+            <header class="top-bar">
+                <h1 class="page-title">ユーザー管理</h1>
+                <div class="user-info" id="adminNameDisplay">管理者: ...</div>
+            </header>
+
+            <div class="content-wrapper">
+                <div class="toolbar">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="userSearch" placeholder="名前またはIDで検索...">
+                    </div>
+                    <div class="actions">
+                        <button class="btn btn-refresh" onclick="location.reload()"><i class="fas fa-sync"></i> 更新</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>アイコン</th>
+                                    <th>名前 / ID</th>
+                                    <th>メールアドレス</th>
+                                    <th>登録日</th>
+                                    <th>ステータス</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="userTableBody">
+                                <tr>
+                                    <td colspan="6" style="text-align:center; padding: 20px;">読み込み中...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="adminToast" class="toast">処理完了</div>
+
+    <script type="module" src="js/admin.js"></script>
+</body>
+</html>
