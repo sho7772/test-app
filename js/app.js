@@ -34,18 +34,58 @@ window.updateHeader = function() {
 onAuthStateChanged(auth, async (u) => {
     if(u) {
         const d = await getDoc(doc(db,"users",u.uid));
-        window.currentUserData = d.exists() ? d.data() : {};
-        window.updateHeader();
-        document.getElementById('loginArea').style.display='none';
-        document.getElementById('userArea').style.display='block';
+        if (d.exists()) {
+            const data = d.data();
+
+            // ★追加: BANチェック
+            if (data.isBanned) {
+                alert("このアカウントは利用停止されています。");
+                await auth.signOut();
+                return;
+            }
+
+            window.currentUserData = data;
+            window.updateHeader();
+
+            // ★追加: 管理者の場合、メニューにリンクを追加するフラグを立てる、または直接DOM操作
+            if (data.isAdmin) {
+                addAdminLink();
+            }
+
+            document.getElementById('loginArea').style.display='none';
+            document.getElementById('userArea').style.display='block';
+        } else {
+            // ドキュメントがない場合（削除された場合など）
+            window.currentUserData = {};
+        }
     } else {
-        window.currentUserData=null;
-        document.getElementById('greetingText').innerHTML=`ようこそ<br>ゲスト様`;
-        document.getElementById('loginArea').style.display='block';
-        document.getElementById('userArea').style.display='none';
-        window.switchTab('home');
+        // ...既存のログアウト処理...
+        removeAdminLink(); // ★追加: ログアウト時にリンク消去
     }
 });
+
+// ★追加: 管理者リンク表示用関数
+function addAdminLink() {
+    const menu = document.getElementById('headerMenu');
+    // 重複防止
+    if(document.getElementById('adminLinkItem')) return;
+
+    const div = document.createElement('div');
+    div.id = 'adminLinkItem';
+    div.innerHTML = `
+        <div class="menu-divider"></div>
+        <div class="menu-item" onclick="location.href='admin.html'" style="color:#e74c3c;">
+            <i class="fas fa-user-shield"></i> 管理画面へ
+        </div>
+    `;
+    menu.appendChild(div);
+}
+
+function removeAdminLink() {
+    const item = document.getElementById('adminLinkItem');
+    if(item) item.remove();
+}
+
 
 // アプリ起動時の初期クリックイベント登録（ヘッダーメニューの背景クリックなど）
 document.addEventListener('click', (e) => {
